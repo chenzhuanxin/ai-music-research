@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>海外AI音乐生成产品调研报告</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e6f68'/%3E%3Cg fill='%23f1f4f3'%3E%3Crect x='6' y='14' width='2.6' height='10'/%3E%3Crect x='10.4' y='10' width='2.6' height='14'/%3E%3Crect x='14.8' y='6' width='2.6' height='18'/%3E%3Crect x='19.2' y='12' width='2.6' height='12'/%3E%3Crect x='23.6' y='16' width='2.6' height='8'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --ink:#14202a; --ink-2:#4a5860; --mute:#7c8a92;
+    --paper:#f1f4f3; --surface:#fff; --line:#d7dedb; --line-soft:#e8ecea;
+    --teal:#0e6f68; --teal-soft:#e2eeec;
+    --alert:#96351f; --alert-soft:#f7e8e3;
+    --warn:#8a6212; --warn-soft:#f8f0dd;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    font-weight:400; font-size:15px; line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px 96px;}
+
+  /* ---------- 页头 ---------- */
+  header.masthead{border-bottom:2px solid var(--ink); padding:56px 0 22px; margin-bottom:34px;}
+  .kicker{font-size:12px; letter-spacing:.16em; color:var(--teal); font-weight:500; margin:0 0 14px;}
+  h1{
+    font-family:"Noto Serif SC",Georgia,serif; font-weight:700;
+    font-size:clamp(28px,4.4vw,44px); line-height:1.22; margin:0 0 16px; letter-spacing:-.01em;
+  }
+  .standfirst{font-size:16px; color:var(--ink-2); max-width:66ch; margin:0 0 22px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px 26px; font-size:13px; color:var(--mute);}
+  .meta-row b{color:var(--ink-2); font-weight:500;}
+
+  /* ---------- 章节 ---------- */
+  section{margin:0 0 56px; padding-top:8px;}
+  h2{
+    font-family:"Noto Serif SC",Georgia,serif; font-size:22px; font-weight:700; margin:0 0 6px;
+    padding-bottom:10px; border-bottom:1px solid var(--line);
+  }
+  h2 .no{font-size:13px; color:var(--teal); font-weight:500; margin-right:12px; letter-spacing:.08em;}
+  h3{font-size:15px; font-weight:700; margin:26px 0 10px;}
+  p{margin:0 0 12px;}
+  .lede{color:var(--ink-2); font-size:14px; margin:12px 0 20px; max-width:78ch;}
+  code{font-family:ui-monospace,Consolas,monospace; font-size:12.5px; background:#e7ebe9; padding:1px 5px; color:#2c3a42;}
+
+  /* ---------- 结论条 ---------- */
+  .findings{list-style:none; margin:0; padding:0; border-top:1px solid var(--line);}
+  .findings li{
+    display:grid; grid-template-columns:104px 1fr; gap:18px;
+    padding:14px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .findings .tag{
+    font-size:11.5px; font-weight:500; letter-spacing:.06em; color:var(--teal);
+    border:1px solid var(--teal); align-self:start; text-align:center; padding:2px 0;
+  }
+  .findings .tag.alert{color:var(--alert); border-color:var(--alert);}
+  .findings .tag.warn{color:var(--warn); border-color:var(--warn);}
+  .findings strong{font-weight:700;}
+
+  /* ---------- 表格 ---------- */
+  .t-scroll{overflow-x:auto; margin:0 0 8px;}
+  table{border-collapse:collapse; width:100%; table-layout:fixed;}
+  th,td{text-align:left; vertical-align:top; padding:10px 12px; border-bottom:1px solid var(--line-soft); font-size:13.5px;}
+  thead th{
+    background:var(--ink); color:#eef2f1; font-weight:500; font-size:12px; letter-spacing:.04em;
+    border-bottom:1px solid var(--ink); position:sticky; top:0;
+  }
+  tbody tr:nth-child(even){background:#f8faf9;}
+  td.num{font-variant-numeric:tabular-nums;}
+  .dom a{display:block;}
+  .scroll-hint{display:none; font-size:12px; color:var(--mute); margin:0 0 6px;}
+  .p-name{font-weight:700;}
+  .p-name small{display:block; font-weight:400; color:var(--mute); font-size:11.5px; letter-spacing:.02em;}
+  .score{font-weight:700; font-variant-numeric:tabular-nums;}
+  .score s{display:block; text-decoration:none; font-weight:400; color:var(--mute); font-size:11.5px;}
+  .dom a{color:var(--teal); text-decoration:none; border-bottom:1px solid #a9cdc9; word-break:break-all;}
+  .dom a:hover{background:var(--teal-soft);}
+  .pill{
+    display:inline-block; font-size:11px; line-height:1.6; padding:0 6px; white-space:nowrap;
+    border:1px solid currentColor; vertical-align:1px;
+  }
+  .pill.stop{color:var(--alert); background:var(--alert-soft);}
+  .pill.warn{color:var(--warn); background:var(--warn-soft);}
+  .pill.ok{color:var(--teal); background:var(--teal-soft);}
+  .cap{font-size:12px; color:var(--mute); margin:0 0 26px; max-width:88ch;}
+
+  /* ---------- 图表 ---------- */
+  .chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-bottom:10px;}
+  .chart-box{background:var(--surface); border:1px solid var(--line);}
+  .chart-box h3{margin:0; padding:14px 16px 0; font-size:14px;}
+  .chart-box .sub{margin:4px 16px 0; font-size:12px; color:var(--mute);}
+  .chart{width:100%; height:360px;}
+  .chart-box.full{grid-column:1/-1;}
+  .chart-box.full .chart{height:430px;}
+
+  /* ---------- 产品卡 ---------- */
+  .product{border-top:1px solid var(--line); padding:26px 0 8px;}
+  .product:first-of-type{border-top:none;}
+  .p-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 14px; margin-bottom:4px;}
+  .p-head .idx{
+    font-family:"Noto Serif SC",serif; font-size:13px; color:var(--teal); font-weight:700;
+  }
+  .p-head h3{margin:0; font-size:19px; font-weight:700; font-family:"Noto Serif SC",serif;}
+  .p-head .dev{font-size:13px; color:var(--mute);}
+  .p-verdict{font-size:13.5px; color:var(--ink-2); margin:8px 0 16px; max-width:82ch;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:26px;}
+  .box-h{font-size:12px; letter-spacing:.08em; color:var(--mute); margin:0 0 8px; font-weight:500;}
+  .kv th{width:33%; font-weight:500; color:var(--ink-2); font-size:12.5px; background:#f7f9f8;}
+  .kv td{font-size:12.8px;}
+  .kv tr:nth-child(even) td, .kv tr:nth-child(even) th{background:#f7f9f8;}
+  .kv tr:nth-child(odd) td, .kv tr:nth-child(odd) th{background:#fff;}
+  .src th{width:26%;}
+  .src th,.src td{font-size:12px; padding:7px 9px; word-break:break-all;}
+  .src a{color:var(--teal); text-decoration:none; border-bottom:1px dotted #a9cdc9;}
+  .src a:hover{background:var(--teal-soft);}
+  .src .host{color:var(--mute); display:block; font-size:11px;}
+  ul.tight{margin:6px 0 0; padding-left:18px; font-size:12.8px; color:var(--ink-2);}
+  ul.tight li{margin-bottom:3px;}
+
+  /* ---------- 待确认 ---------- */
+  ol.pending{counter-reset:pc; list-style:none; margin:0; padding:0; border-top:1px solid var(--line);}
+  ol.pending li{
+    counter-increment:pc; position:relative; padding:12px 0 12px 46px;
+    border-bottom:1px solid var(--line-soft); font-size:13.5px;
+  }
+  ol.pending li::before{
+    content:counter(pc,decimal-leading-zero); position:absolute; left:0; top:14px;
+    font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--teal);
+  }
+  ol.pending b{font-weight:700;}
+
+  footer{border-top:2px solid var(--ink); margin-top:56px; padding-top:18px; font-size:12px; color:var(--mute);}
+
+  @media (max-width:900px){
+    .chart-grid{grid-template-columns:1fr;}
+    .cols{grid-template-columns:1fr;}
+    header.masthead{padding-top:36px;}
+    th,td{padding:9px 8px; font-size:12.5px;}
+    .findings li{grid-template-columns:84px 1fr; gap:12px;}
+    .t-scroll table{min-width:920px;}
+    .kv th,.kv td{font-size:13.2px;}
+    .src th,.src td{font-size:12.2px;}
+    .scroll-hint{display:block;}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="kicker">海外 AI 音乐生成产品 · 结构化调研</p>
+  <h1>九款海外 AI 音乐生成平台调研报告</h1>
+  <p class="standfirst">覆盖 AIVA、Soundraw、Mubert、Boomy、Beatoven.ai、Ecrett Music、Soundful、Beatopia、Loudly 九款免版税／商用音乐生成产品：官方定价、免费额度、授权口径、质量共识评分与信源追溯。三类信源交叉验证（官方定价页 / 科技媒体评测 / 用户社区）。</p>
+  <div class="meta-row">
+    <span><b>信息获取时间</b> 2026-10-07（UTC+8，全部信源于当日检索与抓取）</span>
+    <span><b>计价口径</b> USD；人民币按 1 USD ≈ 7.1 CNY 估算并标注</span>
+    <span><b>汇率说明</b> AIVA 官方以 EUR 计价，未臆造 EUR 汇率</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="no">01</span>核心发现</h2>
+  <ul class="findings">
+    <li><span class="tag alert">服务变更</span><div><strong>Beatoven.ai 的 B2C 消费者服务已于 2026 年 8 月停止</strong>。CEO Mansoor Rahimat Khan 在 LinkedIn 公告，核心团队被孟买 Rusk Media 吸收；Maestro 模型与音乐智能 IP 留在 Beatoven Private Limited，转为面向企业的授权业务。官网与定价页仍在线上，属于遗留页面。</div></li>
+    <li><span class="tag alert">归类修正</span><div><strong>Beatopia 不是 AI 音乐生成平台</strong>。它是以月订阅下载人工制作「type beats」的曲库（WAV＋5 条 stems＋无限许可），AI 能力仅限配套的 AI 歌词生成器。官网 2026 年 9—10 月仍有更新，业务在运营中。</div></li>
+    <li><span class="tag warn">分发变更</span><div><strong>Boomy 自 2025 年 4 月起停止自有流媒体分发与版税分成</strong>，改为由创作者自行选择发行商；官方 EULA 里「净收入 80% 分成」的条款仅对平台发行场景成立。</div></li>
+    <li><span class="tag">共性</span><div><strong>九款产品无一生成人声演唱</strong>，全部定位器乐／配乐，没有一款能做完整「歌曲」（含演唱）——这是与 Suno、Udio 一类产品最本质的分野。</div></li>
+    <li><span class="tag">价格区间</span><div>入门付费档 <strong>$4.99—$15/月</strong>，最高档 <strong>$29.99—$199/月</strong>（USD，月付口径）。最便宜的商用入口是 Soundful Plus $4.99，最贵的是 Mubert Business $199。</div></li>
+    <li><span class="tag warn">社区口碑</span><div>用户社区评价普遍偏低：<strong>Loudly Trustpilot 1.4/5（24 条）、Mubert 1.7—1.8/5、Boomy ~1.8/5、Soundraw 2.0/5</strong>，集中投诉自动续费、退款与客服；AIVA、Ecrett Music 未检索到可信的用户社区评分（列入待确认）。</div></li>
+  </ul>
+  <p class="cap">以上为用户社区（Trustpilot 等）与公开发布信息，样本量小、存在情绪偏差，仅作口碑参考，不代表音乐质量测评结论。</p>
+</section>
+
+<section>
+  <h2><span class="no">02</span>总览对比表</h2>
+  <p class="lede">质量评分为<strong>跨来源综合的主观共识评分</strong>（满分 10），评估维度：音乐质量、风格多样性、生成稳定性、时长上限、是否含人声／歌曲，综合科技媒体评测与用户口碑，非标准化测评，不存在官方基准。</p>
+  <p class="scroll-hint">表格较宽，可左右滑动查看完整列 →</p>
+  <div class="t-scroll">
+    <table>
+      <colgroup>
+        <col style="width:11%"><col style="width:12%"><col style="width:13%">
+        <col style="width:10%"><col style="width:15%"><col style="width:20%"><col style="width:19%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>产品</th><th>开发方</th><th>质量评分（主观共识）</th><th>官方域名</th>
+          <th>免费额度</th><th>付费价格（USD／约合 CNY）</th><th>特点与局限</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="p-name">AIVA<small>AI 作曲</small></td>
+          <td>Aiva Technologies SARL（卢森堡，2016）</td>
+          <td class="score">8.0<s>管弦／影视强，流行弱</s></td>
+          <td class="dom"><a href="https://www.aiva.ai/">aiva.ai</a></td>
+          <td>Free €0 永久：3 次下载/月、单曲≤3 分钟、MP3＋MIDI，版权归 AIVA，须署名，非商用</td>
+          <td>Standard €11/月（年付，＋VAT）→ 15 次下载/月；Pro €33/月（年付，＋VAT）→ 300 次下载/月、完整版权。月付口径 €15／€49（第三方 USD 近似 $15／$49 ≈ ¥107／¥348）</td>
+          <td>250+ 风格、MIDI 导出、可自定义风格模型；无人声演唱；完整商用版权需 Pro 档；下载配额紧</td>
+        </tr>
+        <tr>
+          <td class="p-name">Soundraw<small>免版税音乐</small></td>
+          <td>SOUNDRAW（日本团队，法人实体待确认）</td>
+          <td class="score">8.2<s>干净、专业，但模板化</s></td>
+          <td class="dom"><a href="https://soundraw.io/">soundraw.io</a></td>
+          <td>可免费生成／试听（无需付费），但下载需付费计划；无免费下载许可</td>
+          <td>Creator $11.04/月（年付，原价 $16.99）或 $12.99/月（月付，原价 $19.99）≈ ¥78／¥92，无限 MP3 下载；Artist 档 3 级（10／20／无限 下载），USD 站内价待确认</td>
+          <td>仅用自研曲库训练，免版权授权、永久有效；纯器乐无人声；参数化选择（非文本提示）；输出偏公式化、30 秒后易听出循环感</td>
+        </tr>
+        <tr>
+          <td class="p-name">Mubert<small>生成＋流媒体</small></td>
+          <td>Mubert Inc.（美国特拉华州，2017 注册；创始人 Alexey Kochetkov）</td>
+          <td class="score">7.8<s>实时背景音乐强，前景弱</s></td>
+          <td class="dom"><a href="https://mubert.com/">mubert.com</a></td>
+          <td>Ambassador $0：25 首/月、固定时长、MP3、5 次下载/月、非商用</td>
+          <td>Creator $14/月（年付 $11.69）、Pro $39/月（年付 $32.49）商用、Business $199/月（年付 $149.29）≈ ¥99—¥1,413；API 另计 Build $49／Startup $199／Startup+ $499</td>
+          <td>真实采样＋实时流式生成，开发者 API 是行业少见的真能力；曲目<strong>不可</strong>分发到 Spotify 等流媒体、不可登记 Content ID；取消订阅后不能在新项目中使用已生成曲目；无人声</td>
+        </tr>
+        <tr>
+          <td class="p-name">Boomy<small>快速出歌</small></td>
+          <td>Boomy Corporation（美国；CEO Alex Mitchell）</td>
+          <td class="score">6.0<s>出歌快，音乐性一般</s></td>
+          <td class="dom"><a href="https://boomy.com/">boomy.com</a></td>
+          <td>Free $0：创建／编辑歌曲、基础编辑、25 首歌保存；<strong>不可下载</strong>，非商用</td>
+          <td>Creator $9.99/月（原价 $14.99，年付 $109.89）、Pro $29.99/月（原价 $39.99，年付 $329.90）≈ ¥71—¥213</td>
+          <td>秒级生成可发布歌曲；无人声演唱、编曲简单、无 MIDI/stems；2023 年因刷流被 Spotify 下架约 7% 曲目；2025-04 起停止自有分发</td>
+        </tr>
+        <tr>
+          <td class="p-name">Beatoven.ai<small>视频配乐</small> <span class="pill stop">B2C 已停</span></td>
+          <td>Beatoven Private Limited（印度，2021-06 成立）</td>
+          <td class="score">7.0<s>历史评分；服务已停止</s></td>
+          <td class="dom"><a href="https://www.beatoven.ai/">beatoven.ai</a></td>
+          <td>免费试用：生成次数极少（年付视图 1 次／月付视图 10 次，口径待确认）</td>
+          <td>历史价：Creator $10/月或 $100/年（30 分钟下载/月）；Visionary $20/月或 $200/年（60 分钟）；按量 $3/分钟 ≈ ¥71—¥142</td>
+          <td>按「分钟」计费的视频／播客配乐，Maestro 模型＋AI 音效；非独占永久授权但不可直接分发到 Spotify；<strong>消费者服务 2026 年 8 月停止，转为 B2B 模型授权</strong></td>
+        </tr>
+        <tr>
+          <td class="p-name">Ecrett Music<small>视频配乐</small></td>
+          <td>ecrett music 团队（官网未披露法人，待确认）</td>
+          <td class="score">6.5<s>零门槛、偏通用</s></td>
+          <td class="dom"><a href="https://ecrettmusic.com/">ecrettmusic.com</a></td>
+          <td>Free $0：可下载预览音乐（含水印）、保存管理曲目；无干净曲目下载</td>
+          <td>Individual $7.99/月 或 $4.99/月（年付，省 38%）；Business $24.99/月 或 $14.99/月（年付，省 40%）≈ ¥57—¥177</td>
+          <td>场景＋情绪＋流派三选一生成，无限下载，最便宜的配乐方案之一；仅器乐、无人声；<strong>不可</strong>把音乐作为独立音乐文件分发或售卖；曲目通用、定制有限；单曲时长上限官方未明确</td>
+        </tr>
+        <tr>
+          <td class="p-name">Soundful<small>商用音乐</small></td>
+          <td>Soundful, Inc.（美国洛杉矶；CEO／联创 Diaa El All；成立年份 2019／2021 口径不一）</td>
+          <td class="score">6.3<s>授权清晰但重复度高</s></td>
+          <td class="dom"><a href="https://soundful.com/">soundful.com</a></td>
+          <td>Free $0 永久：无限生成、25+ 免费风格、每月 1 次 MP3 下载、个人许可（不可商用、须署名）</td>
+          <td>Plus $4.99/月；Pro $9.99/月（400 次下载＋20 STEM 包/月）；Business $45.99/月起（750／1,500／3,000 下载档）；Enterprise 定制 ≈ ¥35—¥327</td>
+          <td>模板化商用背景音乐，Fairly Trained 认证、支持 stem 导出与 SoundCloud 分发；纯器乐、无人声；模板化导致重复；免费版仅 1 次下载/月；完整版权需另行购买</td>
+        </tr>
+        <tr>
+          <td class="p-name">Beatopia<small>type beats 曲库</small> <span class="pill warn">非 AI 生成</span></td>
+          <td>待确认（官网未披露法人实体）</td>
+          <td class="score">不适用<s>人工制作 beat，非 AI 生成</s></td>
+          <td class="dom"><a href="https://www.beatopia.com/">beatopia.com</a></td>
+          <td>浏览／试听全部 beat 免费；7 天免费试用（第三方口径）</td>
+          <td>$15/月（每月 5 个 beat，含 WAV＋stems＋20 个人声预设）；年付 $11.25/月（$135/年）≈ ¥107／¥80</td>
+          <td>订阅制「类型 beat」曲库＋AI 歌词助手，无限许可；<strong>不做 AI 作曲</strong>，归类为 AI 音乐生成产品不成立；风格集中于 Trap／Hip-Hop／R&B／Drill</td>
+        </tr>
+        <tr>
+          <td class="p-name">Loudly<small>生成＋曲库＋分发</small></td>
+          <td>Loudly GmbH（德国柏林；页面署 Loudly AG；成立年份 2011／2015／2019 口径不一）</td>
+          <td class="score">7.5<s>一体化强，专业度不足</s></td>
+          <td class="dom"><a href="https://www.loudly.com/">loudly.com</a></td>
+          <td>Free：约 90% 功能可用、每日生成额度、单曲 30 秒预览上限、1 次下载/天、非商用、基础 MP3</td>
+          <td>Personal $10/月（年付 $8，$96/年）、Pro $30/月（年付 $24，$288/年）≈ ¥71—¥213；音乐 API：一次性 $150／1,000 首，或订阅 $125/月</td>
+          <td>生成＋stems＋采样包＋母带＋分发一体化，生成即获授权；无人声演唱；同一风格内重复；免费版仅 30 秒；用户社区口碑差（Trustpilot 1.4—2.3）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cap">注：AIVA 官方以欧元计价，表中人民币仅按第三方美元近似的月付口径折算；Soundraw 官方页面对本机展示的是本地化 CNY 价（Creator CN¥41.58/月 等），与英文站 USD 口径不同，占比不予换算。</p>
+</section>
+
+<section>
+  <h2><span class="no">03</span>横向对比图表</h2>
+  <p class="lede">价格取月付口径（USD，AIVA 用第三方美元近似并标注）；质量评分为主观共识评分。数据来源见第 05 节与各产品信源表。</p>
+  <div class="chart-grid">
+    <div class="chart-box full">
+      <h3>入门付费档 × 最高档月费（USD／月，月付口径）</h3>
+      <p class="sub">AIVA 价格为欧元官方价折算的第三方美元近似；Beatoven.ai 为停服前历史价；Soundraw 最高档为第三方口径，官方站内 USD 待确认。</p>
+      <div class="chart" id="chart-price"></div>
+    </div>
+    <div class="chart-box full">
+      <h3>音乐质量主观共识评分（满分 10）</h3>
+      <p class="sub">Beatopia 为非 AI 生成的人工 beat 曲库，不参与评分。评分依据见各产品信源表，非标准化测评。</p>
+      <div class="chart" id="chart-score"></div>
+    </div>
+    <div class="chart-box full">
+      <h3>质量评分 × 入门月费：性价比定位</h3>
+      <p class="sub">横轴为入门付费档月费（USD），纵轴为质量评分；气泡大小表示最高档价格量级。左上＝高分低价，右下＝高价低分。</p>
+      <div class="chart" id="chart-scatter"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">04</span>逐产品字段与信源</h2>
+  <p class="lede">每个产品给出完整字段数据表与信源映射表（注明每条 URL 支撑哪个字段）。三类信源：①官方站点定价页、②科技媒体评测、③用户社区。无法核实的信息统一进入第 05 节待确认清单。</p>
+
+  <!-- ===== 1 AIVA ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">01</span><h3>AIVA</h3><span class="dev">Aiva Technologies SARL（卢森堡，2016 年成立，创始人 Pierre Barreau）</span></div>
+    <p class="p-verdict">面向影视、游戏与古典／管弦乐的 AI 作曲工具，支持 MIDI 导出与自定义风格模型，是九款产品中唯一以「作曲／编曲」而非「配乐生成」为定位的；短板是无人声演唱、流行乐写作弱、下载配额紧，且完整商业版权要等到 Pro 档。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>AIVA（Artificial Intelligence Virtual Artist）；生成模型未公开命名版本</td></tr>
+        <tr><th>开发方</th><td>Aiva Technologies SARL，卢森堡市；2016 年成立，创始人 Pierre Barreau，累计融资约 $2.8M</td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span> 官网定价与试用入口正常</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>8.0 / 10（主观共识）</b>。依据：管弦／影视／古典向被多家评测认为「可与 $500—$2,000 的委约作曲相比」；250+ 风格预设偏向影视配乐；共识短板是流行乐「薄旋律、无钩子」，且完全不生成人声。第三方给分区间 7.5—8.7（ReviewNexa 8.5、AI Provenance 8.0、AISO Tools 高评价、Hashmeta 编曲 7.5）</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（强）、风格多样性（250+ 但集中于影视／古典）、生成稳定性（高）、时长上限（免费 3 分钟／Standard 5 分钟／Pro 5:30）、人声与歌曲（<b>无</b>，纯器乐）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://www.aiva.ai/">https://www.aiva.ai/</a>（官方域名，已核验定价页在同一域名下）</td></tr>
+        <tr><th>免费额度</th><td>Free, Forever €0，无需信用卡：每月 3 次下载、单曲≤3 分钟、MP3＋MIDI、版权归 AIVA、需署名、不可变现、仅非商用</td></tr>
+        <tr><th>价格</th><td>Standard <b>€11/月</b>（年付，另加 VAT，立省 26%）：15 次下载/月、≤5 分钟、MP3＋MIDI、版权仍归 AIVA、仅限 YouTube／Twitch／TikTok／Instagram 的有限变现；Pro <b>€33/月</b>（年付，省 33%）：300 次下载/月、≤5 分 30 秒、全格式含高清 WAV、版权归用户、全渠道变现。月付口径为 €15／€49（第三方美元近似 $15／$49 ≈ ¥107／¥348）。<b>官方以 EUR 计价，无官方 USD 价</b></td></tr>
+        <tr><th>时长上限</th><td>免费 3 分钟；Standard 5 分钟；Pro 5 分 30 秒</td></tr>
+        <tr><th>是否含人声／歌曲</th><td>否。全部为器乐；不生成演唱、不做完整歌曲</td></tr>
+        <tr><th>授权要点</th><td>免费版与 Standard 档版权归 AIVA；只有 Pro 档用户取得完整版权并无限变现；Content ID 风险低</td></tr>
+        <tr><th>一句话特点与局限</th><td>影视／古典管弦作曲质量最好的选择，可导出 MIDI 进 DAW 精修；但无演唱人声、流行向几乎不可用，商用所有权门槛在 €33/月，且每月下载配额偏紧。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://www.aiva.ai/">aiva.ai</a><span class="host">官方站点 · 定价页</span></th><td>免费额度、Standard／Pro 价格、下载次数、时长上限、版权归属口径</td></tr>
+        <tr><th><a href="https://www.aitoolsatlas.ai/tools/aiva-ai/review">aitoolsatlas.ai/tools/aiva-ai/review</a><span class="host">科技媒体评测</span></th><td>Standard €11／Pro €33 年付价、$15／$49 月付口径、优势与短板</td></tr>
+        <tr><th><a href="https://brainszone.ai/ai-catalog/aiva">brainszone.ai/ai-catalog/aiva</a><span class="host">科技媒体评测</span></th><td>Pro 档 €33／$33 口径、300 次下载、完整商业权利</td></tr>
+        <tr><th><a href="https://makerstack.co/reviews/aiva-review/">makerstack.co/reviews/aiva-review</a><span class="host">科技媒体评测</span></th><td>下载配额紧、商业所有权门槛在 €33 的批评</td></tr>
+        <tr><th><a href="https://aisotools.com/blog/aiva-review-2026">aisotools.com/blog/aiva-review-2026</a><span class="host">科技媒体评测</span></th><td>管弦／影视成品质量评价</td></tr>
+        <tr><th><a href="https://usefulai.com/tools/ai-music-generators">usefulai.com/tools/ai-music-generators</a><span class="host">科技媒体评测</span></th><td>流行乐弱（薄旋律、无钩子）、250+ 预设偏影视家族</td></tr>
+        <tr><th><a href="https://reviewnexa.com/best-ai-music-generators/">reviewnexa.com/best-ai-music-generators</a><span class="host">科技媒体评分</span></th><td>8.5/10 评分、适合电影配乐</td></tr>
+        <tr><th><a href="https://www.netfigo.com/startup/aiva/">netfigo.com/startup/aiva</a><span class="host">企业信息</span></th><td>开发方主体、成立年份、创始人、融资额</td></tr>
+        <tr><th><a href="https://aisavr.com/tools/aiva/">aisavr.com/tools/aiva</a><span class="host">工具目录</span></th><td>4.4 分编辑评分、SACEM 认可、免费版有限</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 2 Soundraw ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">02</span><h3>Soundraw</h3><span class="dev">SOUNDRAW（日本团队；官网未披露法人实体，待确认）</span></div>
+    <p class="p-verdict">「版权最干净」的免版税背景音乐生成器：模型只用自家制作人录制的曲库训练，授权一次到手永久有效；代价是完全参数化操作、纯器乐，且输出偏公式化。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>SOUNDRAW（AI Music Generator，含 Mixer 分段编辑与 API）</td></tr>
+        <tr><th>开发方</th><td>SOUNDRAW；官网与本地化站点为日本团队运营（站内含日文版），法人实体与注册地未在官网核实 → <b>待确认</b></td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span> 计划与 FAQ 于 2026-10 仍更新（含 Canva、Filmora 的 API 合作）</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>8.2 / 10（主观共识）</b>。依据：独立测试给音质 8.4/10（干净、混音好，但明显 loop-based，30 秒后重复感显现）；另一组测试给器乐 8.5／混音 8／一致性 8.5；编曲 7.5 偏公式化。综合音质与一致性高、创造性偏低</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（高）、风格多样性（30+ 流派可混搭）、生成稳定性（高）、时长上限（可按视频需要自由设定长度）、人声与歌曲（<b>无</b>，纯器乐）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://soundraw.io/">https://soundraw.io/</a><br>官方落地页 <a href="https://discover.soundraw.io/lp/creator">discover.soundraw.io/lp/creator</a></td></tr>
+        <tr><th>免费额度</th><td>可免费生成、预览、保存与自定义曲目（无需付费）；<b>下载需付费计划</b>，无免费下载许可。官方 FAQ 的表述为「Creator 计划一键无限生成与下载」</td></tr>
+        <tr><th>价格</th><td>Creator <b>$11.04/月</b>（年付，原价 $16.99）或 <b>$12.99/月</b>（月付，原价 $19.99）≈ ¥78／¥92，无限 MP3 下载、商用与个人使用、可分发变现；Artist Starter（10 次下载/月，MP3）、Artist Pro（20 次/月，MP3＋WAV＋stems）、Artist Unlimited（无限，含 WAV＋stems）三级。<b>Artist 三档的官方站内 USD 价未取得，第三方口径散布在 $19—$30/月，列为待确认</b>；Enterprise 需询价。年付计划下已下载曲目永久保留授权</td></tr>
+        <tr><th>时长上限</th><td>按项目自由设定（Mixer 可逐小节调整强度与长度）；官方未公布单曲硬上限</td></tr>
+        <tr><th>是否含人声／歌曲</th><td>否。纯器乐；官方建议想加人声并发行单曲的用户改走 Artist 计划</td></tr>
+        <tr><th>授权要点</th><td>训练数据 100% 自研曲库，全球永久商用授权；订阅期内下载的曲目在取消订阅后仍保持授权；Creator 档<strong>不可</strong>把曲目作为独立音乐发行到 Spotify／Apple Music（需 Artist 档）</td></tr>
+        <tr><th>一句话特点与局限</th><td>免版权商用背景下最安全、最省事的选择，音质与稳定性好、授权干净；但只能选参数不能写提示词，纯器乐、编曲公式化，且 Artist 档的美元价与本地化人民币价口径混乱。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://soundraw.io/">soundraw.io</a><span class="host">官方站点 · 计划表与 FAQ</span></th><td>计划体系（Creator／Artist Starter／Pro／Unlimited／Enterprise）、每月下载次数、格式、内容 ID 与授权 FAQ、训练数据口径</td></tr>
+        <tr><th><a href="https://discover.soundraw.io/lp/creator">discover.soundraw.io/lp/creator</a><span class="host">官方落地页 · 定价</span></th><td>Creator $11.04/月（年付，原价 $16.99）、$12.99/月（月付，原价 $19.99）、无限下载、永久授权</td></tr>
+        <tr><th><a href="https://mioffice.ai/blog/best-melody-to-music-ai-free-2026">mioffice.ai/blog/best-melody-to-music-ai-free-2026</a><span class="host">科技媒体实测</span></th><td>音质 8.4/10、loop-based 与重复感、无法上传旋律</td></tr>
+        <tr><th><a href="https://sunodownload.io/cs/blog/best-ai-music-generators-2026/">sunodownload.io/blog/best-ai-music-generators-2026</a><span class="host">科技媒体实测</span></th><td>器乐 8.5／混音 8／一致性 8.5、无水印、商用友好</td></tr>
+        <tr><th><a href="https://www.musicwave.ai/ar/blog/soundraw-alternatives">musicwave.ai/blog/soundraw-alternatives</a><span class="host">科技媒体评测</span></th><td>编曲公式化、自定义浮于表面</td></tr>
+        <tr><th><a href="https://www.aiproverdict.com/blog/best-ai-music-tools-2026-ranked-reviewed-1780160261648">aiproverdict.com/blog/best-ai-music-tools-2026</a><span class="host">科技媒体评分</span></th><td>8.7/10 评分、无 vocals、偏背景音乐</td></tr>
+        <tr><th><a href="https://www.genmedialab.com/comparisons/best-ai-music-generators-2026/">genmedialab.com/comparisons/best-ai-music-generators-2026</a><span class="host">科技媒体实测</span></th><td>Artist Pro／Unlimited 的月付与年付 USD 价、下载与授权对比</td></tr>
+        <tr><th><a href="https://toolradar.com/guides/best-ai-music-generation-tools">toolradar.com/guides/best-ai-music-generation-tools</a><span class="host">工具评测 · 聚合用户评分</span></th><td>Trustpilot 2.0/5（498 条）、G2 4.0/5（1 条）</td></tr>
+        <tr><th><a href="https://costbench.com/software/ai-music-generators/soundraw/hidden-costs/">costbench.com/…/soundraw/hidden-costs</a><span class="host">用户社区投诉汇总</span></th><td>Trustpilot 2/5、取消后继续扣费与自动续费投诉</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 3 Mubert ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">03</span><h3>Mubert</h3><span class="dev">Mubert Inc.（美国特拉华州；2017-01-17 注册；创始人／CEO Alexey Kochetkov）</span></div>
+    <p class="p-verdict">实时流式生成＋真人采样，是九款里唯一有生产级开发者 API 和「无限流」能力的产品，适合背景音乐与 App／游戏集成；但明确禁止把曲目当独立音乐发行到流媒体。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>Mubert（Render 面向创作者、Studio 面向音乐人、API 面向开发者、Play 面向听众）</td></tr>
+        <tr><th>开发方</th><td>Mubert Inc.，美国特拉华州公司（注册号 SR # 20170258599，注册于 2017-01-17，注册地址 8 The Green, Dover, DE 19901）；创始人兼 CEO Alexey Kochetkov</td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span> 个人订阅、API、Play 四条产品线均在售</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>7.8 / 10（主观共识）</b>。依据：以真实采样拼接，电子／lo-fi／氛围类「连贯、有有机感」，背景音乐场景评价高；但管弦与声学风格「听起来人工、过渡突兀」，长曲一致性下降；第三方综合分 7.6—8.5（AI Tool Police 3.8/5、AISO Tools 3.9/5、SearchMyTool 8.5/10）</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（背景音乐强、前景弱）、风格多样性（150+ 流派、50+ 情绪）、生成稳定性（实时生成稳定）、时长上限（付费最长 25 分钟）、人声与歌曲（<b>无</b>）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://mubert.com/">https://mubert.com/</a>（另有 mubert.ai 站点，与官方站的关系待确认）</td></tr>
+        <tr><th>免费额度</th><td>Ambassador $0：25 首/月、固定时长、MP3 输出、5 次下载/月、仅非商用</td></tr>
+        <tr><th>价格</th><td>Creator <b>$14/月</b>（年付 $11.69/月）非商用，500 首/月、最长 25 分钟、无损、无限下载；Pro <b>$39/月</b>（年付 $32.49/月）含商用与完整 Track Editor；Business <b>$199/月</b>（年付 $149.29/月）面向客户工作／代理／App，1,000 首/月 ≈ ¥99—¥1,413。<br>API（独立计价）：Build $49/月（100 次生成）、Startup $199/月（5,000 次）、Startup+ $499/月（30,000 次）。所有付款不退款</td></tr>
+        <tr><th>时长上限</th><td>免费档固定时长；付费档最长 25 分钟</td></tr>
+        <tr><th>是否含人声／歌曲</th><td>否。器乐／氛围为主，不做演唱与歌词</td></tr>
+        <tr><th>授权要点</th><td>商用与变现需 Pro／Business；曲目<strong>不可</strong>作为独立音乐分发、不可发布到 Spotify 等流媒体、不可登记 Content ID、不可再分发或上传音乐库；取消订阅后已生成曲目不能在<em>新</em>项目中使用（订阅期内已发布的项目可继续变现）</td></tr>
+        <tr><th>一句话特点与局限</th><td>实时生成＋真人采样＋真 API，是背景音乐／App 集成场景最专业的一档；但授权把「当音乐发行」这条路彻底堵死，不做前景歌曲、无人声，且个人档社区口碑很差（Trustpilot 1.7—1.8/5）。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://mubert.com/pricing">mubert.com/pricing</a><span class="host">官方站点 · 定价页</span></th><td>Ambassador／Creator／Pro／Business 价格与年付折扣、各档生成与下载次数、时长上限、授权与不退款条款</td></tr>
+        <tr><th><a href="https://mubert.com/api/use-cases/video-editors">mubert.com/api/use-cases/video-editors</a><span class="host">官方站点 · API 定价</span></th><td>API Build $49／Startup $199／Startup+ $499 及生成额度</td></tr>
+        <tr><th><a href="https://mubert.com/documents/mubert_render_license.pdf">mubert.com/documents/mubert_render_license.pdf</a><span class="host">官方文件 · 许可协议</span></th><td>主体 Mubert Inc.（特拉华州）、许可条款</td></tr>
+        <tr><th><a href="https://mubert.com/about-us">mubert.com/about-us</a><span class="host">官方站点</span></th><td>产品定位、真人采样＋AI 协作模式</td></tr>
+        <tr><th><a href="https://mubert.com/blog/lionbridge-ceo-of-ai-music-generator-mubert-wants-to-create-a-musical-dna">mubert.com/blog/…-musical-dna</a><span class="host">官方博客（引外部访谈）</span></th><td>创始人 Alexey Kochetkov 与公司沿革</td></tr>
+        <tr><th><a href="https://www.aiproverdict.com/reviews/mubert">aiproverdict.com/reviews/mubert</a><span class="host">科技媒体评测</span></th><td>电子／lo-fi／氛围连贯、管弦与声学人工、长曲一致性</td></tr>
+        <tr><th><a href="https://aitoolspolice.com/reviews/mubert/">aitoolspolice.com/reviews/mubert</a><span class="host">科技媒体评分</span></th><td>3.8/5 分、API 为差异化能力、器乐限制</td></tr>
+        <tr><th><a href="https://aisotools.com/blog/mubert-review-2026">aisotools.com/blog/mubert-review-2026</a><span class="host">科技媒体评分</span></th><td>3.9/5 分、免费 25 首/月、$14 入门商用档</td></tr>
+        <tr><th><a href="https://checkthat.ai/brands/suno/alternatives">checkthat.ai/brands/suno/alternatives</a><span class="host">聚合用户评分</span></th><td>Trustpilot 1.7/5（20+ 条评论）</td></tr>
+        <tr><th><a href="https://www.musicpulse.app/es/blog/creer-musique-avec-ia-etat-art-2026">musicpulse.app/blog/creer-musique-avec-ia…</a><span class="host">用户评价汇总</span></th><td>Trustpilot 1.7 分与客服、退款投诉原文引述</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 4 Boomy ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">04</span><h3>Boomy</h3><span class="dev">Boomy Corporation（美国；CEO Alex Mitchell）</span></div>
+    <p class="p-verdict">十秒钟生成一首可发布歌曲的「入门级」工具，卖点是快与发行；但音乐性、编辑深度与厂牌信誉都偏弱，2023 年刷流事件与 2025 年停止自有分发行至今仍影响其可信度。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>Boomy（AI 音乐生成＋发行平台；累计生成歌曲数超 1,400 万首，平台宣称）</td></tr>
+        <tr><th>开发方</th><td>Boomy Corporation（美国），CEO Alex Mitchell</td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span>，但 <span class="pill warn">分发模式已变</span>：2025 年 4 月起停止自有 Spotify／Apple Music 分发与版税分成，Creator／Pro 用户改为下载 release 后自行选择发行商</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>6.0 / 10（主观共识）</b>。依据：评测一致认为音乐质量「明显低于 AIVA 或 Soundraw」，编曲简单、制作美学窄、可替代性强；Pro 档有 Dolby 重制后「鼓点有力、合成器干净」的正评，但定制深度不足以支撑专业制作；无 MIDI 导出与 stems。部分目录给出 4.0—4.1/5 的用户友好度评分（不等于音乐质量）</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（偏低）、风格多样性（中等，偏流行／电子模板）、生成稳定性（高、秒级）、时长上限（标准歌曲长度，官方未公布，待确认）、人声与歌曲（<b>无演唱</b>）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://boomy.com/">https://boomy.com/</a><br>帮助中心 <a href="https://support.boomy.com/">support.boomy.com</a></td></tr>
+        <tr><th>免费额度</th><td>Free $0.00/月：创建与编辑歌曲、基础编辑工具、25 首歌保存；<b>不含下载</b>（无 MP3／WAV 下载），不可商用</td></tr>
+        <tr><th>价格</th><td>Creator <b>$9.99/月</b>（原价 $14.99，33% off；年付 $109.89，约 $9.16/月）：500 首歌保存、高级编辑、25 次下载/月、含商用权与版权；Pro <b>$29.99/月</b>（原价 $39.99；年付 $329.90，约 $27.49/月）：无限保存、250 次下载/月、WAV 下载、stem 级编辑、广告等商用许可 ≈ ¥71—¥213。Dolby 重制为单独 $9.99 计费项</td></tr>
+        <tr><th>时长上限</th><td>官方未公布单曲时长硬上限（按「标准歌曲长度」处理）→ <b>待确认</b></td></tr>
+        <tr><th>是否含人声／歌曲</th><td>仅器乐，<b>不生成人声演唱或歌词</b>；但产品形态是「一首歌」，可就节拍与结构编辑</td></tr>
+        <tr><th>授权要点</th><td>免费档无下载、无商用；Creator／Pro 下载即获完整商业权利并可用任意发行商；官方 EULA 保留「净收入最高 80% 分成」条款，但该条款对应平台发行场景，自 2025-04 分发模式变更后对多数用户不再适用</td></tr>
+        <tr><th>一句话特点与局限</th><td>想把「生成→上架」压缩到十分钟，Boomy 最快；但音乐质量与编辑深度都是这一批里最弱的一档，且 2023 年因刷流被 Spotify 下架约 7% 曲目、Trustpilot 约 1.8 分（账户冻结与版税提现投诉），用它做正经发行存在平台风险。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://boomy.com/pricing">boomy.com/pricing</a><span class="host">官方站点 · 定价页</span></th><td>Free／Creator $9.99／Pro $29.99 价格、原价与折扣、歌曲保存数量</td></tr>
+        <tr><th><a href="https://support.boomy.com/hc/en-us/articles/37558444509197-Where-is-my-release-2025">support.boomy.com/…/Where-is-my-release-2025</a><span class="host">官方帮助中心</span></th><td>2025-04 起停止自有分发、改由用户自选发行商的官方说明</td></tr>
+        <tr><th><a href="https://boomy.com/api/membership_plans">boomy.com/api/membership_plans</a><span class="host">官方接口数据</span></th><td>Pro 年付 $329.90（retail $439.90）、USD 计价</td></tr>
+        <tr><th><a href="https://boomy.com/eula">boomy.com/eula</a><span class="host">官方条款</span></th><td>净收入最高 80% 分成的 Revenue Share 条款</td></tr>
+        <tr><th><a href="https://techvernia.com/pages/reviews/audio/boomy.html">techvernia.com/pages/reviews/audio/boomy.html</a><span class="host">科技媒体评测</span></th><td>音乐质量低于 AIVA／Soundraw、无 MIDI／stems、2023 Spotify 争议、版税极低</td></tr>
+        <tr><th><a href="https://aitoolsatlas.ai/tools/boomy-ai/pricing">aitoolsatlas.ai/tools/boomy-ai/pricing</a><span class="host">科技媒体</span></th><td>Creator 500 首保存／25 次下载、Pro 无限／250 次下载、80% 净版税分成（旧口径）</td></tr>
+        <tr><th><a href="https://aitoolsatlas.ai/tools/boomy-ai/pros-cons">aitoolsatlas.ai/tools/boomy-ai/pros-cons</a><span class="host">科技媒体</span></th><td>无人声、无法编辑单个 MIDI、2023 年约 7% 曲库被下架</td></tr>
+        <tr><th><a href="https://aitrendtool.com/tools/boomy">aitrendtool.com/tools/boomy</a><span class="host">工具评测</span></th><td>免费档 0 下载、Creator 25 次／Pro 250 次下载、分发变更说明</td></tr>
+        <tr><th><a href="https://www.aiwiki.ai/wiki/boomy">aiwiki.ai/wiki/boomy</a><span class="host">行业百科 · 争议梳理</span></th><td>「同质化、重复」的评论共识与版税池争议</td></tr>
+        <tr><th><a href="https://recatools.com/ai-directory/boomy/">recatools.com/ai-directory/boomy</a><span class="host">用户社区汇总</span></th><td>Trustpilot 账户冻结、提现受阻、2026 年用户月收入不足 1 美元的案例</td></tr>
+        <tr><th><a href="https://www.musicpulse.app/pt/blog/creer-musique-avec-ia-etat-art-2026">musicpulse.app/blog/creer-musique-avec-ia…</a><span class="host">用户评价汇总</span></th><td>Trustpilot Trustscore ≈ 1.8 与未支付版税的用户证言</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 5 Beatoven ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">05</span><h3>Beatoven.ai</h3><span class="dev">Beatoven Private Limited（印度，2021 年 6 月成立，创始人 Mansoor Rahimat Khan、Siddharth Bhardwaj）</span> <span class="pill stop">B2C 服务已于 2026 年 8 月停止</span></div>
+    <p class="p-verdict">曾经是「按分钟计费、为视频配乐」的务实选择，也是最早采用授权曲库训练并支付版税的团队；因缺乏资本对抗训练数据来源更宽松的对手，2026 年 8 月退出消费者市场，业务转为 Maestro 模型的 B2B 授权。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>Beatoven.ai（Composer 模型＋Maestro 音乐模型＋Maestro Sound Effects）</td></tr>
+        <tr><th>开发方</th><td>Beatoven Private Limited，印度；2021 年 6 月成立，历经 Entrepreneur First，累计融资约 $2.4M（红杉系的 Redstart Labs、Capital 2B、IvyCap、Plug and Play 等参投）</td></tr>
+        <tr><th>当前状态</th><td><span class="pill stop">消费者（B2C）服务已于 2026 年 8 月停止</span>。CEO 于 2026 年 9 月在 LinkedIn 公告，核心团队被孟买 Rusk Media（2026 年 6 月获 Nazara 领投的 10 亿卢比 pre-Series C）吸收；Maestro 模型与音乐智能 IP 留在 Beatoven Private Limited，正面向商业／企业客户做技术授权。官网与定价页仍在线上（遗留页面）。<b>是否仍可新注册／续费 → 待确认</b></td></tr>
+        <tr><th>质量评分</th><td class="num"><b>7.0 / 10（历史评价，服务已停止）</b>。依据：定位为「贴合视频节奏的配乐」，评测认为音色平衡、适合视频／播客背景，但缺少高级定制、旋律不可控；无第三方权威音乐质量基准测试；一项多站横评给其综合维度 8.36（口径为站点质量而非音乐质量，仅供参考）</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（中上，配乐向）、风格多样性（情绪／流派预设，偏少）、生成稳定性（好）、时长上限（按下载分钟数计，30／60 分钟每档）、人声与歌曲（<b>无</b>）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://www.beatoven.ai/">https://www.beatoven.ai/</a><br>定价页 <a href="https://www.beatoven.ai/pricing">beatoven.ai/pricing</a></td></tr>
+        <tr><th>免费额度</th><td>官方定价页的 Trial 为免费：Composer／Maestro／Maestro SFX 各 1 次生成（年付视图）或各 10 次（月付视图），口径自相矛盾 → <b>待确认</b></td></tr>
+        <tr><th>价格</th><td>历史官方价：Creator <b>$10/月</b> 或 <b>$100/年</b>（30 分钟下载/月）；Visionary <b>$20/月</b> 或 <b>$200/年</b>（60 分钟下载/月）；Buy Minutes 按量 <b>$3/分钟</b> ≈ ¥71—¥142。第三方另见 $6/月与「Creator Lite $3/月」口径 → <b>待确认</b></td></tr>
+        <tr><th>时长上限</th><td>以「每月可下载分钟数」计量（30／60 分钟），单曲时长上限未公布 → <b>待确认</b></td></tr>
+        <tr><th>是否含人声／歌曲</th><td>否。器乐＋音效，无人声演唱</td></tr>
+        <tr><th>授权要点</th><td>下载即附永久、非独占许可，可商用与变现；<strong>不</strong>允许把音乐直接分发到 Spotify／Apple Music 等流媒体；官方为 Fairly Trained 认证，训练曲库授权并向音乐人支付版税</td></tr>
+        <tr><th>一句话特点与局限</th><td>历史上是视频／播客配乐按分钟付费的省钱之选、授权来源最「干净」的一家；但因伦理授权路线烧钱且留存困难，消费者产品已下线，现在只剩面向企业的模型授权，普通创作者不应再把它列入可选清单。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://www.aimusicpreneur.com/ai-tools-news/beatoven-ai-b2c-shutdown-rusk-media-maestro-licensing/">aimusicpreneur.com/…/beatoven-ai-b2c-shutdown…</a><span class="host">行业媒体（2026-09-15）</span></th><td>停服时间（2026 年 8 月）、CEO 公告、团队去向 Rusk Media、Maestro 转 B2B 授权、融资与竞争背景</td></tr>
+        <tr><th><a href="https://www.beatoven.ai/pricing">beatoven.ai/pricing</a><span class="host">官方站点 · 定价页（遗留）</span></th><td>Creator $10/月、$100/年；Visionary $20/月、$200/年；$3/分钟；免费试用额度</td></tr>
+        <tr><th><a href="https://www.beatoven.ai/">beatoven.ai</a><span class="host">官方站点</span></th><td>Maestro 模型与音效、MP3／WAV 下载、许可与禁止分发到 Spotify 的 FAQ、Fairly Trained 认证</td></tr>
+        <tr><th><a href="https://www.toolworthy.ai/blog/best-ai-music-generator">toolworthy.ai/blog/best-ai-music-generator</a><span class="host">科技媒体评测</span></th><td>Creator $10/月（30 分钟）、Visionary $20/月（60 分钟）、免版税非独占永久许可</td></tr>
+        <tr><th><a href="https://reworkcontent.azurewebsites.net/tools/ai-tools/best-ai-tools-for-music-production-2026">rework…/best-ai-tools-for-music-production-2026</a><span class="host">科技媒体评测</span></th><td>Creator Lite $3/月、Creator $10、Visionary $20、额外分钟 $3、定位为贴合视频节奏</td></tr>
+        <tr><th><a href="https://melodycraft.app/es/tutorials/beatoven-ai-review-2026">melodycraft.app/tutorials/beatoven-ai-review-2026</a><span class="host">科技媒体评测</span></th><td>$6—$20/月档位、按量 $3/分钟、适用人群</td></tr>
+        <tr><th><a href="https://musicwave.ai/de/blog/mubert-alternatives">musicwave.ai/blog/mubert-alternatives</a><span class="host">科技媒体横评</span></th><td>输出质量「Good」、价格 $2.50/月（口径与其他来源不符，已列入待确认）</td></tr>
+        <tr><th><a href="https://heutethemen.de/sechs-getestete-ki-musik-websites-fuer-die-alltaegliche-musikproduktion/">heutethemen.de/…ki-musik-websites…</a><span class="host">科技媒体横评</span></th><td>多站横评中 Beatoven 8.36 的综合（站点）评分</td></tr>
+        <tr><th><a href="https://softedin.com/alternatives/best-alternatives-to-beatoven-ai">softedin.com/alternatives/best-alternatives-to-beatoven-ai</a><span class="host">工具目录</span></th><td>停服后替代品建议（旁证服务不可用）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 6 Ecrett ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">06</span><h3>Ecrett Music</h3><span class="dev">ecrett music 团队（官网未披露法人实体与注册地 → 待确认）</span></div>
+    <p class="p-verdict">把生成流程压缩成「场景＋情绪＋流派」三个下拉框，是这批产品里学习成本最低、也最便宜的一档；代价是完全没有高级控制，成品通用化、旋律不可控。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>Ecrett Music（AI 免版税背景音乐生成器）</td></tr>
+        <tr><th>开发方</th><td>ecrett music（官网未披露公司主体）→ <b>待确认</b></td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span> 官网定价与购买入口正常</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>6.5 / 10（主观共识）</b>。依据：一致性评价较好（测试给一致性 8.5／混音 8），被视为「简单、可靠但平庸」的背景音乐；缺少高级定制、曲目偏通用；分级目录把它列为 C 级工具，特定流派（如 Phonk）测试给 6/10。无权威音乐质量基准</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（中等）、风格多样性（流派×情绪×场景组合，可用但浅）、生成稳定性（高）、时长上限（官方未明确 → 待确认）、人声与歌曲（<b>无</b>）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://ecrettmusic.com/">https://ecrettmusic.com/</a></td></tr>
+        <tr><th>免费额度</th><td>Free $0：可生成并下载<em>预览</em>音乐（带水印样本）、保存与管理曲目、无限试听；<b>不含无水印／干净曲目下载</b></td></tr>
+        <tr><th>价格</th><td>Individual <b>$7.99/月</b> 或 <b>$4.99/月</b>（年付，省 38%）：无限下载、可商用、可用于 YouTube 变现，但<strong>不覆盖广告与客户工作</strong>；Business <b>$24.99/月</b> 或 <b>$14.99/月</b>（年付，省 40%）：覆盖广告／客户工作等商业场景 ≈ ¥57—¥177。另见 Basic $9.99／Pro $24.99 的旧口径 → <b>待确认</b></td></tr>
+        <tr><th>时长上限</th><td>官方未公布单曲时长上限（历史口径约 1—2 分钟并可循环延长）→ <b>待确认</b></td></tr>
+        <tr><th>是否含人声／歌曲</th><td>否。纯器乐，无人声</td></tr>
+        <tr><th>授权要点</th><td>付费档为免版税永久授权，可商用与变现；<strong>不得</strong>把音乐作为独立音乐文件分发、售卖或在流媒体上架（Do's and Don'ts 明确禁止）；Individual 档不得用于客户／广告项目</td></tr>
+        <tr><th>一句话特点与局限</th><td>预算最紧、只需要一段「不出错」的背景音乐时，Ecrett 的 $4.99/月（年付）很难被打败；但它只能给通用器乐，不能精修、不能署名发行，也没有任何社区口碑数据可交叉验证。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://ecrettmusic.com/">ecrettmusic.com</a><span class="host">官方站点 · 定价页</span></th><td>Free／Individual $4.99（年付，省 38%）／Business $14.99（年付，省 40%）、授权 Do's and Don'ts、无独立发行权</td></tr>
+        <tr><th><a href="https://aisotools.com/pricing/ecrett-music">aisotools.com/pricing/ecrett-music</a><span class="host">科技媒体 · 价格核对</span></th><td>三档价格与折扣率、无限下载、商用许可范围</td></tr>
+        <tr><th><a href="https://visionstack.visionsparksolutions.com/reviews/ecrett-music/">visionstack…/reviews/ecrett-music</a><span class="host">科技媒体评测</span></th><td>Basic $9.99／Pro $24.99 另口径、约 3 分钟时长、无法存储／上传曲目</td></tr>
+        <tr><th><a href="https://brightseotools.com/post/11-best-free-ai-music-production-tools">brightseotools.com/post/11-best-free-ai-music-production-tools</a><span class="host">科技媒体评测</span></th><td>免费档为带水印预览、Individual 档排除广告与客户工作</td></tr>
+        <tr><th><a href="https://sunodownload.io/cs/blog/best-ai-music-generators-2026/">sunodownload.io/blog/best-ai-music-generators-2026</a><span class="host">科技媒体实测</span></th><td>混音 8/10、一致性 8.5、基于场景的生成方式</td></tr>
+        <tr><th><a href="https://www.aitierlist.xyz/en/compare/ecrett-music-vs-lyria-3">aitierlist.xyz/compare/ecrett-music-vs-lyria-3</a><span class="host">工具分级目录</span></th><td>C 级定位、无限下载、商用授权</td></tr>
+        <tr><th><a href="https://www.mixmasterai.co/ai-music-prompts/ecrett/phonk">mixmasterai.co/ai-music-prompts/ecrett/phonk</a><span class="host">科技媒体实测</span></th><td>特定流派生成质量 6/10 的实测记录</td></tr>
+        <tr><th><a href="https://costbench.com/software/ai-music-generators/ecrett-music/hidden-costs/">costbench.com/…/ecrett-music/hidden-costs</a><span class="host">价格核对</span></th><td>$7.99／月 与 $24.99／月 的月付口径</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 7 Soundful ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">07</span><h3>Soundful</h3><span class="dev">Soundful, Inc.（美国洛杉矶；CEO／联合创始人 Diaa El All；成立年份 2019／2021 口径不一）</span></div>
+    <p class="p-verdict">授权与合规链条最完整的一家（Fairly Trained 认证、stem 导出、SoundCloud 分发），价格也极低；但模板化严重、长曲与细分风格表现弱，免费档每月只有 1 次下载、完整版权还要另买。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>Soundful（AI 音乐生成平台，面向创作者与品牌）</td></tr>
+        <tr><th>开发方</th><td>Soundful, Inc.，美国洛杉矶；CEO／联合创始人 Diaa El All；成立年份有 2019（CEO 口径）与 2021 两种说法，2022 年 2 月曾披露 380 万美元种子轮 → <b>成立年份待确认</b></td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span> 定价页与 API 均在售</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>6.3 / 10（主观共识）</b>。依据：独立评测给 5.4/10，认为 lo-fi 与电子「精致」，但整体重复、创造性低；横向对比中被认为质量低于 Suno／Udio 一类；长于 3 分钟的曲目与民族乐器风格表现弱。定价与授权条款的透明度获得好评</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（中等偏低）、风格多样性（40+ 模板、100+ 风格，覆盖流派多但模板化）、生成稳定性（高）、时长上限（约 3 分钟，长曲表现弱 → 待确认）、人声与歌曲（<b>无</b>）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://soundful.com/">https://soundful.com/</a><br>定价页 <a href="https://soundful.com/pricing/">soundful.com/pricing/</a></td></tr>
+        <tr><th>免费额度</th><td>Free $0/月（永久）：无限生成、25+ 免费模板、<b>每月 1 次 MP3 下载</b>、个人许可（不可商用、须署名）；超过 1 次下载的曲目只能以流媒体方式分享</td></tr>
+        <tr><th>价格</th><td>Plus <b>$4.99/月</b>；Pro <b>$9.99/月</b>（400 次 MP3／WAV 下载＋20 个 STEM 包/月、SoundCloud 分发，不含版权）；Business <b>$45.99/月</b>起（750／1,500／3,000 次下载三档，年付 $499.99／$999.99／$1,999.99）；Enterprise 定制 ≈ ¥35—¥327。完整版权（full copyright）需单独购买（第三方口径约 $50+/曲 → 待确认）。早期页面另见 Business 最高档 $249.99/月、年付 $2,999.99 → <b>与现价页不一致，待确认</b></td></tr>
+        <tr><th>时长上限</th><td>约 3 分钟（评测指出超过 3 分钟质量下降）→ 官方未明确，<b>待确认</b></td></tr>
+        <tr><th>是否含人声／歌曲</th><td>否。纯器乐，无人声演唱</td></tr>
+        <tr><th>授权要点</th><td>免费档不可商用且需署名；Plus／Pro 为音轨许可，<strong>版权仍归 Soundful</strong>；要取得完整版权需另付费用；Business 档覆盖客户与广告工作</td></tr>
+        <tr><th>一句话特点与局限</th><td>$4.99/月就能拿到可商用、条款透明的背景音乐，是预算敏感场景的稳妥选择；但模板化让它听两首就能认出来，免费档每月仅 1 次下载，而真正「买断版权」要另外掏钱。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://soundful.com/pricing/">soundful.com/pricing/</a><span class="host">官方站点 · 定价页</span></th><td>Free／Plus $4.99／Pro $9.99／Business $45.99 起／Enterprise 全档价格、下载与 STEM 额度、署名与版权口径</td></tr>
+        <tr><th><a href="https://soundful.com/pricing/?trk=organization_guest_main-feed-card_reshare-text">soundful.com/pricing/（历史档位）</a><span class="host">官方站点 · 定价页</span></th><td>Business Tier 3 $249.99/月、年付 $2,999.99（与现价页不一致）</td></tr>
+        <tr><th><a href="https://scored.tools/blog/soundful-review-2026/">scored.tools/blog/soundful-review-2026</a><span class="host">科技媒体独立评测</span></th><td>5.4/10 评分、lo-fi／电子精致但重复、授权透明</td></tr>
+        <tr><th><a href="https://toolchase.com/tool/soundful/">toolchase.com/tool/soundful</a><span class="host">科技媒体评测</span></th><td>质量低于 Suno／Udio、$4.99 年付与 $9.99 月付口径</td></tr>
+        <tr><th><a href="https://visionstack.visionsparksolutions.com/reviews/soundful/">visionstack…/reviews/soundful</a><span class="host">科技媒体评测</span></th><td>长于 3 分钟与民族乐器表现弱、模板化重复</td></tr>
+        <tr><th><a href="https://aitoolscoop.com/tool/soundful/">aitoolscoop.com/tool/soundful</a><span class="host">工具评测</span></th><td>Business 档 $45.99/月 与年付口径的矛盾记录</td></tr>
+        <tr><th><a href="https://www.eesel.ai/blog/suno-alternatives">eesel.ai/blog/suno-alternatives</a><span class="host">科技媒体评测</span></th><td>完整版权需按曲额外购买（约 $50+/曲）</td></tr>
+        <tr><th><a href="https://podwires.com/podtoolbox/resource/soundful/">podwires.com/podtoolbox/resource/soundful</a><span class="host">用户社区汇总</span></th><td>Trustpilot 与 Product Hunt 上的客服、自动续费与取消困难投诉</td></tr>
+        <tr><th><a href="https://copyrightsociety.org/knowledge-hub/innovators/soundful">copyrightsociety.org/…/soundful</a><span class="host">行业组织访谈</span></th><td>CEO Diaa El All 与公司定位、Fairly Trained 认证口径</td></tr>
+        <tr><th><a href="https://aidb.digital/company/soundful">aidb.digital/company/soundful</a><span class="host">企业数据库</span></th><td>总部洛杉矶、成立年份 2021 与 380 万美元种子轮</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 8 Beatopia ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">08</span><h3>Beatopia</h3><span class="dev">开发方未披露（官网无公司信息 → 待确认）</span> <span class="pill warn">经核验：不是 AI 音乐生成平台</span></div>
+    <p class="p-verdict">核验结论：Beatopia 是一份<strong>人工制作的「type beats」订阅制曲库</strong>——由与 Gunna、Kehlani、Bad Bunny、Wizkid、Katy Perry、NBA YoungBoy 合作过的制作人供稿，按月下载 beat（WAV＋5 条分层 stems）并附无限许可，AI 能力只体现在配套的 AI 歌词生成工具上。把它列为「AI 音乐生成产品」是归类错误；业务本身仍在运营。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>Beatopia（Type Beats 订阅曲库＋Deep Flow AI 歌词生成器）</td></tr>
+        <tr><th>开发方</th><td>官网未披露公司主体与注册地 → <b>待确认</b></td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span> 官网 2026 年 9—10 月仍有更新，订阅与下载入口正常；商品条款页发布记录为 2022-03</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>不适用（非 AI 生成音乐）</b>。若仅评估所交付 beat 的专业度：供稿人为职业制作人、交付 .wav＋5 条 stems＋20 个人声预设、含无限许可，属职业级成品；但<strong>缺少任何独立评测或用户社区评分</strong>可交叉验证，该判断仅基于官方权益描述，不足以给出可信的十分制评分</td></tr>
+        <tr><th>评估维度</th><td>不适用于 AI 生成质量维度（音乐质量／风格多样性／生成稳定性／时长上限／人声均无 AI 生成口径）；可评估的是 beat 制作专业度与授权完整度</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://www.beatopia.com/">https://www.beatopia.com/</a>（订阅页 beatopia.com/products，帮助中心 beatopia.zendesk.com）</td></tr>
+        <tr><th>免费额度</th><td>浏览、试听全部 beat 免费；7 天免费试用（第三方口径，官网未在前台明示 → 待确认）</td></tr>
+        <tr><th>价格</th><td><b>$15/月</b>：每月 5 个 beat 下载，含 .wav 与 5 条 stems、20 个人声预设、无限许可；<b>年付 $11.25/月（$135/年）</b> ≈ ¥107／折后 ¥80。页面标注「Type Beats Subscription · $15 Per Month」</td></tr>
+        <tr><th>时长上限</th><td>beat 时长按曲目而定（商品页示例约 1:56—4:09）；每月下载数量上限 5 个</td></tr>
+        <tr><th>是否含人声／歌曲</th><td>beat 本身为器乐；配套 AI 歌词生成器出歌词，但<strong>不生成演唱人声</strong></td></tr>
+        <tr><th>授权要点</th><td>订阅期内下载的 beat 附无限许可（可用于商业作品）；具体许可文本需以官方条款为准 → <b>待确认</b></td></tr>
+        <tr><th>一句话特点与局限</th><td>如果你要的是「拿来就能用的专业 Trap／Hip-Hop beat」，Beatopia 的 $15/月含 stems 与无限许可确实划算；但它不做 AI 作曲、没有生成能力，风格集中在少数说唱子流派，且公司与评分信息均无从核实，与本题「AI 音乐生成产品」不是同一类目。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://www.beatopia.com/products">beatopia.com/products</a><span class="host">官方站点 · 订阅页</span></th><td>$15/月订阅、每月 5 个 beat、含 .wav 与 5 条 stems、20 个人声预设、无限许可</td></tr>
+        <tr><th><a href="https://www.beatopia.com/home">beatopia.com/home</a><span class="host">官方站点</span></th><td>2026 年 9—10 月仍在更新的运营状态、beat 时长示例</td></tr>
+        <tr><th><a href="https://beatopia.zendesk.com/hc/en-us/articles/4569706867739">beatopia.zendesk.com/hc/…-subscription</a><span class="host">官方帮助中心</span></th><td>订阅权益（5 beats/月）、许可与条款口径</td></tr>
+        <tr><th><a href="https://www.toolmage.com/en/tool/beatopia/">toolmage.com/en/tool/beatopia</a><span class="host">工具目录</span></th><td>7 天免费试用、$15/月、5 beat 下载、WAV＋stems、20 个人声预设</td></tr>
+        <tr><th><a href="https://www.aikaptan.com/tools/beatopia">aikaptan.com/tools/beatopia</a><span class="host">工具目录</span></th><td>年付 $11.25/月（$135/年）、无限许可、制作人合作艺人名单</td></tr>
+        <tr><th><a href="https://eliteai.tools/tool/beatopia">eliteai.tools/tool/beatopia</a><span class="host">工具目录</span></th><td>供稿制作人合作艺人（Gunna／Kehlani／Bad Bunny 等）、流派覆盖</td></tr>
+        <tr><th><a href="https://5app.ai/app/beatopia-ai">5app.ai/app/beatopia-ai</a><span class="host">工具目录</span></th><td>每个 beat 交付 .wav＋5 条 stems</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 9 Loudly ===== -->
+  <div class="product">
+    <div class="p-head"><span class="idx">09</span><h3>Loudly</h3><span class="dev">Loudly GmbH（德国柏林；页面署 Loudly AG；成立年份 2011／2015／2019 口径不一）</span></div>
+    <p class="p-verdict">把生成、stems、采样包、母带与分发打成一站式的产品，还有面向开发者的音乐 API；能力面最宽，但专业级作曲深度不足、同风格重复明显，且用户社区口碑是这批里最差的。</p>
+    <p class="box-h">完整字段数据表</p>
+    <table class="kv">
+      <colgroup><col style="width:17%"><col style="width:83%"></colgroup>
+      <tbody>
+        <tr><th>产品名称</th><td>Loudly（Music Maker；生成模型 VEGA-2 等，含 30 万+ 曲库与 Music API）</td></tr>
+        <tr><th>开发方</th><td>Loudly GmbH，德国柏林 Quedlinburger Str. 1, 10589 Berlin（页面版权署名「© Loudly AG」）；旗下另有 Music Maker JAM 产品线；成立年份有 2011（作为 JAM）、2015、2019（作为 Nxtnowmusic）三种口径 → <b>待确认</b>；第三方称 CEO 为 Rory Kenny</td></tr>
+        <tr><th>当前状态</th><td><span class="pill ok">运营中</span> 个人订阅与开发者 API 均在售</td></tr>
+        <tr><th>质量评分</th><td class="num"><b>7.5 / 10（主观共识）</b>。依据：生成速度（&lt;5 秒）与功能完整度获好评（工具站给 4.2/5）；但评测认为输出「达不到专业级音乐制作的要求」，同一风格内重复明显，细分／民族风格弱；免费版 30 秒导出上限被普遍视为最大短板</td></tr>
+        <tr><th>评估维度</th><td>音乐质量（中等）、风格多样性（多流派模板＋30 万曲库采样，但细分风格弱）、生成稳定性（快且稳定）、时长上限（免费 30 秒／Personal 7 分钟／Pro 30 分钟）、人声与歌曲（<b>无演唱人声</b>）</td></tr>
+        <tr><th>官方网址</th><td class="dom"><a href="https://www.loudly.com/">https://www.loudly.com/</a><br>FAQ <a href="https://www.loudly.com/faq">loudly.com/faq</a><br>开发者定价 <a href="https://www.loudly.com/developers/pricing">loudly.com/developers/pricing</a></td></tr>
+        <tr><th>免费额度</th><td>Free：约 90% 功能可用（含部分高级模型）、每日生成额度、单曲 <b>30 秒</b>预览／导出上限、1 次下载/天、非商用、基础 MP3</td></tr>
+        <tr><th>价格</th><td>Personal <b>$10/月</b> 或 <b>$8/月</b>（年付 $96/年）：2,500 credits/月、最长 7 分钟、300 次下载、个人商用许可、MP3＋WAV、stem／采样包、分发；Pro <b>$30/月</b> 或 <b>$24/月</b>（年付 $288/年）：10,000 credits/月、最长 30 分钟、专业商用许可（含客户与广告工作） ≈ ¥71—¥213。<br>音乐 API：一次性 <b>$150</b>（1,000 首，$0.15/首）或订阅 <b>$125/月</b>（1,000 首，$0.125/首）</td></tr>
+        <tr><th>时长上限</th><td>免费 30 秒；Personal 7 分钟；Pro 30 分钟</td></tr>
+        <tr><th>是否含人声／歌曲</th><td>否。不生成演唱人声；可按流派／乐器／情绪生成器乐并导出 stems</td></tr>
+        <tr><th>授权要点</th><td>付费档生成即获免版税商用授权，可分发到流媒体并保留版税；个人档覆盖个人商用，客户／广告工作需 Pro；训练数据来自自有授权曲库与生成曲目</td></tr>
+        <tr><th>一句话特点与局限</th><td>一条流水线走完「生成→拆 stem→母带→分发」，还有可用的音乐 API，功能完整度在九款里靠前；但无人声演唱、专业作曲深度不足、同风格重复度高，且 Trustpilot 1.4—2.3/5 的口碑意味着购买前要谨慎处理自动续费。</td></tr>
+      </tbody>
+    </table>
+    <p class="box-h">信源列表（URL → 支撑字段）</p>
+    <table class="src">
+      <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+      <tbody>
+        <tr><th><a href="https://www.loudly.com/faq">loudly.com/faq</a><span class="host">官方站点 · FAQ</span></th><td>Free／Personal／Pro 三档结构、商用许可差异、credits 与下载额度</td></tr>
+        <tr><th><a href="https://www.loudly.com/ai-song-remixer">loudly.com/ai-song-remixer</a><span class="host">官方站点</span></th><td>免费版约 90% 功能可用、30 秒预览上限、1 次下载/天</td></tr>
+        <tr><th><a href="https://www.loudly.com/aimusicstudio">loudly.com/aimusicstudio</a><span class="host">官方站点</span></th><td>训练数据（800 万+ 授权曲目）、&lt;5 秒生成、导出 WAV／stems／MIDI</td></tr>
+        <tr><th><a href="https://www.loudly.com/developers/pricing">loudly.com/developers/pricing</a><span class="host">官方站点 · 开发者定价</span></th><td>API 一次性 $150／1,000 首，或订阅 $125/月／1,000 首</td></tr>
+        <tr><th><a href="https://www.heloaitools.com/ai-tools/loudly/">heloaitools.com/ai-tools/loudly</a><span class="host">科技媒体评测</span></th><td>Personal $10/月、Pro $30/月、7 分钟与 30 分钟时长上限</td></tr>
+        <tr><th><a href="https://toolchase.com/tool/loudly/">toolchase.com/tool/loudly</a><span class="host">科技媒体评分</span></th><td>4.2/5 评分、Personal $8 年付口径、功能完整度</td></tr>
+        <tr><th><a href="https://tooliverse.ai/tools/loudly">tooliverse.ai/tools/loudly</a><span class="host">科技媒体评测</span></th><td>「能力强但受 30 秒免费导出与单风格重复拖累」、年付 $8／$24</td></tr>
+        <tr><th><a href="https://www.aiproverdict.com/reviews/loudly">aiproverdict.com/reviews/loudly</a><span class="host">科技媒体评测</span></th><td>输出质量不足以满足专业级音乐制作</td></tr>
+        <tr><th><a href="https://aitoolscoop.com/tool/loudly/">aitoolscoop.com/tool/loudly</a><span class="host">工具评测</span></th><td>2,500 credits／900 VEGA＋100 MANTA、300 次下载、5 个 stem 包</td></tr>
+        <tr><th><a href="https://aipedia.wiki/tools/loudly/">aipedia.wiki/tools/loudly</a><span class="host">行业百科</span></th><td>公司信息、许可条款、VEGA-2 模型</td></tr>
+        <tr><th><a href="https://www.musicmakerjam.app/community/profiles/lizashdbenson">musicmakerjam.app/community/…</a><span class="host">官方社区页</span></th><td>Loudly GmbH 柏林注册地址（旁证主体与坐落）</td></tr>
+        <tr><th><a href="https://costbench.com/software/ai-music-generators/loudly/hidden-costs/">costbench.com/…/loudly/hidden-costs</a><span class="host">用户社区汇总</span></th><td>Trustpilot 1.4/5（24 条评论，2026-07）与自动续费投诉</td></tr>
+        <tr><th><a href="https://conversiongems.com/tools/loudly">conversiongems.com/tools/loudly</a><span class="host">用户评分汇总</span></th><td>Trustpilot 2.3/5、支持响应慢的反馈</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>
+
+<section>
+  <h2><span class="no">05</span>无法核实 / 待确认项清单</h2>
+  <p class="lede">以下条目在本次调研的三类信源中无法得到一致或可追溯的结论，明确标注为待确认，未做推测填充。</p>
+  <ol class="pending">
+    <li><b>AIVA 的用户社区信源缺失。</b>未检索到 AIVA 的 Trustpilot／G2／Reddit 可信评分，第 03 节 AIVA 的 8.0 分仅由科技媒体评测与官方能力描述支撑，缺社区维度交叉验证。</li>
+    <li><b>Soundraw 官方站内 USD 价。</b>官方英文落地页给出 Creator $11.04（年付）／$12.99（月付），但官方主站对本机展示的是本地化 CNY 价（Creator CN¥41.58/月、Artist Starter CN¥74.92、Artist Pro CN¥91.58、Artist Unlimited CN¥124.92），两者不可通约；Artist 三档的官方 USD 价与第三方口径（$19—$30/月）不一致，官方结账价待确认。</li>
+    <li><b>Soundraw 公司主体与注册地未核实。</b>官网未披露法人实体；「日本团队」的判断来自站内本地化与第三方目录，需以公司注册信息为准。</li>
+    <li><b>mubert.ai 与 mubert.com 的关系。</b>检索中出现独立域名 mubert.ai（提供 Mubert AI Music Composer），与官方站 mubert.com 是否同属一家、是否为官方镜像，未能核实。</li>
+    <li><b>Mubert 免费档是否带水印。</b>官方价格表中存在「Audible watermark」一行，但未能确认它适用于哪一档。</li>
+    <li><b>Boomy 的下载额度与分成条款现状。</b>Creator 25 次／Pro 250 次下载为第三方口径，官方定价页未列明；EULA 的「净收入最高 80% 分成」是否仍对「select artist partners」生效，官方未说明；单曲时长上限官方未公布。</li>
+    <li><b>Beatoven.ai 停服后的可注册／可续费状态。</b>官网与定价页仍在线，无法确认新用户是否还能订阅、老用户是否仍可下载；免费试用额度（年付视图 1 次／月付视图 10 次）自相矛盾；$6/月与 $2.50/月的第三方价格口径无法核实。</li>
+    <li><b>Ecrett Music 的开发方与产品上限。</b>官网未披露公司主体与注册地；单曲时长上限官方未明确（旧口径约 1—2 分钟）；Basic $9.99／Pro $24.99 的价格口径与官方现价不符；未检索到可信用户社区评分。</li>
+    <li><b>Soundful 的公司成立年份与最高档价格。</b>2019（CEO 口径）与 2021（企业数据库口径）冲突；Business 现价 $45.99 起与历史页面的 $249.99/月（年付 $2,999.99）加年付 $499.99／$999.99／$1,999.99 的档位说明无法对齐；「完整版权 $50+/曲」为第三方口径。</li>
+    <li><b>Beatopia 的全部公司信息与评分。</b>官网无公司主体、注册地、成立时间，也无独立评测或社区评分；「7 天免费试用」为第三方口径；许可全文需以官方条款为准。其产品归类应修正为「type beats 订阅曲库＋AI 歌词工具」，不计入 AI 音乐生成产品。</li>
+    <li><b>Loudly 的主体与年限。</b>页面同时出现 Loudly GmbH 与 Loudly AG；成立年份 2011／2015／2019 三说并存；Personal／Pro 的时长上限（7 分钟／30 分钟）来自第三方，官方页未直接核实；2,500／10,000 credits 的具体换算规则未核实。</li>
+    <li><b>九款产品的质量评分均为主观共识评分。</b>行业不存在针对 AI 音乐质量的标准化基准测试，所有分数由科技媒体实测、榜单评级与用户口碑综合而成，不同来源给分区间可差 1—2 分（如 AIVA 7.5—8.7、Mubert 7.6—8.5），评分应作为相对排序参考而非绝对值。</li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="no">06</span>方法与口径说明</h2>
+  <ul class="tight">
+    <li><b>信息获取时间：</b>2026-10-07（UTC+8）。全部官方定价页抓取与信源检索均在当日完成；页面自身标注的最近更新日期（如 Beatopia 2026-09、Soundraw 2026-10-03/04）在信源表中保留。</li>
+    <li><b>汇率口径：</b>价格以官方 USD 为准，人民币按 1 USD ≈ 7.1 CNY 估算并在数值后标注。AIVA 官方以 EUR 计价，<b>未自行设定 EUR 汇率</b>，其美元数值注明为第三方近似。</li>
+    <li><b>质量评分方法：</b>满分 10 的主观共识评分，评估维度为音乐质量、风格多样性、生成稳定性、时长上限、是否含人声／歌曲。综合科技媒体实测（含量化实测项，如音质 8.4/10、混音 8/10）、榜单评级（5 分制换算为 10 分制）与用户口碑；<b>非标准化测评，不含任何官方基准</b>。</li>
+    <li><b>信源分级：</b>①官方站点定价页／帮助中心／EULA（权威，用于价格、额度、授权、时长）；②科技媒体评测与独立实测（用于质量判断，含 titan 及各细分榜单）；③用户社区与评价汇总（Trustpilot、G2、Reddit、Product Hunt 及二手汇总，仅作口碑参考，存在样本量与情绪偏差）。三类不一致处一律进入待确认清单。</li>
+    <li><b>已知局限：</b>部分官方定价页为 JavaScript 渲染，本机抓取到的是本地化（中国大陆）价格或未能取到完整档位表，此类情况已在信源表中标注字段来源。九款产品的免费额度与配额更新频繁，建议以购买当日的官方结账页为准。</li>
+  </ul>
+</section>
+
+<footer>
+  海外 AI 音乐生成产品结构化调研 · 信息获取时间 2026-10-07（UTC+8）· 价格口径 USD（1 USD ≈ 7.1 CNY 估算）· 共 9 款产品、3 类信源交叉验证 · 评分均为主观共识评分，非标准化测评
+</footer>
+</div>
+<script>
+/* ===== 数据（与正文表格同源） ===== */
+var P = ['AIVA','Soundraw','Mubert','Boomy','Beatoven.ai','Ecrett Music','Soundful','Loudly'];
+var ENTRY = [17.5, 12.99, 14, 9.99, 10, 7.99, 4.99, 10];
+var TOP   = [57, 64.99, 199, 29.99, 20, 24.99, 45.99, 30];
+var SCORE = [8.0, 8.2, 7.8, 6.0, 7.0, 6.5, 6.3, 7.5];
+var TIP = {trigger:'axis', axisPointer:{type:'shadow'}, triggerOn:'mousemove|click', renderMode:'richText', confine:true};
+
+var c1 = echarts.init(document.getElementById('chart-price'));
+c1.setOption({
+  grid:{left:8, right:78, top:16, bottom:8, containLabel:true},
+  legend:{bottom:0, itemWidth:12, itemHeight:8, textStyle:{fontSize:11}},
+  tooltip:TIP,
+  xAxis:{type:'value', name:'USD / 月', nameTextStyle:{fontSize:11}, axisLabel:{fontSize:11}, splitLine:{lineStyle:{color:'#e8ecea'}}},
+  yAxis:{type:'category', data:P, axisLabel:{fontSize:11.5}, axisTick:{show:false}, axisLine:{lineStyle:{color:'#d7dedb'}}},
+  series:[
+    {name:'入门付费档', type:'bar', data:ENTRY,
+     label:{show:true, position:'right', fontSize:10.5, formatter:'${c}'},
+     itemStyle:{color:'#0e6f68'}, barMaxWidth:11},
+    {name:'最高档', type:'bar', data:TOP,
+     label:{show:true, position:'right', fontSize:10.5, formatter:'${c}'},
+     itemStyle:{color:'#9fb9b6'}, barMaxWidth:11}
+  ]
+});
+
+var c2 = echarts.init(document.getElementById('chart-score'));
+c2.setOption({
+  grid:{left:8, right:52, top:16, bottom:8, containLabel:true},
+  tooltip:{trigger:'item', triggerOn:'mousemove|click', renderMode:'richText', confine:true,
+    formatter:function(p){return p.name + '：' + p.value + ' / 10';}},
+  xAxis:{type:'value', max:10, name:'评分', nameTextStyle:{fontSize:11}, axisLabel:{fontSize:11}, splitLine:{lineStyle:{color:'#e8ecea'}}},
+  yAxis:{type:'category', data:P, axisLabel:{fontSize:11.5}, axisTick:{show:false}, axisLine:{lineStyle:{color:'#d7dedb'}}},
+  series:[{type:'bar', data:SCORE.map(function(v){
+      if(v >= 8) return {value:v, itemStyle:{color:'#0e6f68'}};
+      if(v >= 7) return {value:v, itemStyle:{color:'#5f9995'}};
+      return {value:v, itemStyle:{color:'#8a6212'}};
+    }),
+    label:{show:true, position:'right', fontSize:10.5, formatter:'{c}'},
+    barMaxWidth:14}]
+});
+
+var c3 = echarts.init(document.getElementById('chart-scatter'));
+c3.setOption({
+  grid:{left:8, right:24, top:22, bottom:38, containLabel:true},
+  tooltip:{trigger:'item', triggerOn:'mousemove|click', renderMode:'richText', confine:true,
+    formatter:function(p){return p.data[3] + String.fromCharCode(10) + '入门 $' + p.data[0] + ' / 月' + String.fromCharCode(10) + '评分 ' + p.data[1] + '/10';}},
+  xAxis:{type:'value', name:'入门月费 USD', nameLocation:'middle', nameGap:26, nameTextStyle:{fontSize:11},
+    axisLabel:{fontSize:11, formatter:'${value}'}, splitLine:{lineStyle:{color:'#e8ecea'}}},
+  yAxis:{type:'value', min:5.5, max:8.6, name:'质量评分', nameTextStyle:{fontSize:11},
+    axisLabel:{fontSize:11}, splitLine:{lineStyle:{color:'#e8ecea'}}},
+  series:[{
+    type:'scatter',
+    symbolSize:function(d){return Math.max(12, Math.min(46, Math.pow(d[2], 0.5) * 2.2));},
+    itemStyle:{color:'#0e6f68', opacity:.72, borderColor:'#0b544f', borderWidth:1},
+    label:{show:true, position:'right', fontSize:11, formatter:'{b}',
+      color:'#4a5860', distance:6},
+    labelLayout:{hideOverlap:false},
+    data:[
+      {value:[17.5,8.0,57,'AIVA']},
+      {value:[12.99,8.2,64.99,'Soundraw']},
+      {value:[14,7.8,199,'Mubert']},
+      {value:[9.99,6.0,29.99,'Boomy']},
+      {value:[10,7.0,20,'Beatoven.ai']},
+      {value:[7.99,6.5,24.99,'Ecrett Music']},
+      {value:[4.99,6.3,45.99,'Soundful']},
+      {value:[10,7.5,30,'Loudly']}
+    ].map(function(o){return {name:o.value[3], value:o.value, data:o.value};})
+  }]
+});
+
+window.addEventListener('resize', function(){c1.resize();c2.resize();c3.resize();});
+</script>
+</body>
+</html>

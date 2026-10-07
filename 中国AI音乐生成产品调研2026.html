@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中国 AI 音乐生成产品与开源模型调研（2026 年 10 月）</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2312564C'/%3E%3Cpath d='M11 21V11l10-2v10' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='9.4' cy='21.4' r='2.6' fill='%23C4762A'/%3E%3Ccircle cx='19.4' cy='19.4' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<style>
+:root{
+  --ink:#1F2329;
+  --ink-2:#646A73;
+  --ink-3:#8A939B;
+  --line:#DEE3E8;
+  --line-2:#EDF1F4;
+  --primary:#12564C;
+  --primary-soft:#E8F0EE;
+  --accent:#C4762A;
+  --accent-soft:#FAEFE3;
+  --bg:#FFFFFF;
+  --bg-soft:#F7F9FA;
+  --serif:"Noto Serif SC","Songti SC",Georgia,"Microsoft YaHei",serif;
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-weight:400;font-size:16px;line-height:1.78;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px;}
+
+/* ===== 报头 ===== */
+.masthead{border-bottom:2px solid var(--ink);padding:56px 0 22px;margin-bottom:0;}
+.kicker{
+  font-size:13px;letter-spacing:.14em;color:var(--primary);
+  font-weight:700;margin:0 0 18px;text-transform:none;
+}
+h1.title{
+  font-family:var(--serif);font-weight:900;
+  font-size:clamp(28px,4.6vw,50px);line-height:1.22;letter-spacing:-.01em;
+  margin:0 0 16px;max-width:20em;
+}
+.subtitle{font-size:17px;color:var(--ink-2);margin:0 0 26px;max-width:44em;line-height:1.7;}
+.meta-row{
+  display:flex;flex-wrap:wrap;gap:10px 34px;font-size:13.5px;color:var(--ink-2);
+  border-top:1px solid var(--line);padding-top:14px;
+}
+.meta-row b{color:var(--ink);font-weight:700;}
+
+.strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  border-bottom:1px solid var(--line);margin-bottom:0;
+}
+.strip .cell{padding:22px 22px 22px 0;border-right:1px solid var(--line-2);}
+.strip .cell:last-child{border-right:0;}
+.strip .num{
+  font-family:var(--serif);font-weight:700;font-size:clamp(22px,3.1vw,34px);
+  color:var(--primary);line-height:1.1;font-variant-numeric:tabular-nums;
+}
+.strip .lbl{font-size:13px;color:var(--ink-2);margin-top:7px;line-height:1.55;}
+
+/* ===== 章节 ===== */
+section{padding:54px 0 8px;border-bottom:1px solid var(--line-2);}
+section:last-of-type{border-bottom:0;}
+h2.sec{
+  font-family:var(--serif);font-weight:700;font-size:clamp(21px,2.6vw,28px);
+  margin:0 0 8px;line-height:1.3;display:flex;gap:14px;align-items:baseline;
+}
+h2.sec .no{
+  font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.08em;
+  font-variant-numeric:tabular-nums;flex:none;padding-top:6px;
+}
+.lede{font-size:16.5px;color:var(--ink-2);max-width:46em;margin:0 0 26px;line-height:1.8;}
+p{margin:0 0 16px;}
+h3{font-family:var(--serif);font-weight:600;font-size:18.5px;margin:30px 0 12px;}
+
+/* ===== 表格 ===== */
+.tablewrap{overflow-x:auto;margin:0 0 10px;border:1px solid var(--line);}
+table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:940px;}
+thead th{
+  background:var(--bg-soft);text-align:left;font-weight:700;font-size:13.5px;
+  color:var(--ink-2);padding:12px 14px;border-bottom:1px solid var(--line);
+  vertical-align:bottom;line-height:1.5;
+}
+tbody td{
+  padding:14px;border-bottom:1px solid var(--line-2);vertical-align:top;
+  font-size:14px;line-height:1.68;overflow-wrap:anywhere;
+}
+tbody tr:last-child td{border-bottom:0;}
+tbody tr:hover{background:#FCFDFD;}
+.pname{font-weight:700;font-size:14.5px;}
+.dev{display:block;color:var(--ink-3);font-size:12.5px;margin-top:3px;line-height:1.5;}
+.score{
+  font-family:var(--serif);font-weight:700;font-size:19px;color:var(--primary);
+  font-variant-numeric:tabular-nums;display:block;
+}
+.score.na{color:var(--ink-3);font-size:15px;}
+a{color:var(--primary);text-decoration:none;border-bottom:1px solid rgba(18,86,76,.35);}
+a:hover{border-bottom-color:var(--primary);}
+a.ext::after{content:"↗";font-size:.78em;vertical-align:.18em;margin-left:2px;color:var(--ink-3);}
+.note-inline{color:var(--ink-3);font-size:12.5px;}
+.tag{
+  display:inline-block;font-size:12px;font-weight:700;line-height:1.5;
+  padding:1px 8px;border:1px solid var(--line);color:var(--ink-2);
+  background:var(--bg-soft);margin-bottom:6px;
+}
+.tag.free{color:#fff;background:var(--primary);border-color:var(--primary);}
+.tag.paid{color:#7A4712;background:var(--accent-soft);border-color:#E7D2B8;}
+ul.tight{margin:0;padding-left:18px;}
+ul.tight li{margin-bottom:5px;}
+
+/* ===== 图表 ===== */
+.chart-card{border:1px solid var(--line);padding:22px 20px 12px;margin:0 0 10px;background:var(--bg);}
+.chart-title{font-family:var(--serif);font-weight:600;font-size:16.5px;margin:0 0 4px;}
+.chart-sub{font-size:13px;color:var(--ink-2);margin:0 0 14px;line-height:1.62;}
+.chart{width:100%;height:520px;}
+.chart.tall{height:620px;}
+.caption{font-size:12.5px;color:var(--ink-3);line-height:1.7;margin:6px 0 0;}
+
+/* ===== 结论块 ===== */
+.findings{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);}
+.findings .f{padding:24px 24px 8px 0;border-right:1px solid var(--line-2);}
+.findings .f:last-child{border-right:0;padding-right:0;}
+.findings .f .t{font-family:var(--serif);font-weight:700;font-size:16.5px;margin:0 0 8px;line-height:1.5;}
+.findings .f p{font-size:14px;color:var(--ink-2);line-height:1.72;margin:0;}
+
+/* ===== 时间线 ===== */
+.timeline{margin:6px 0 0;position:relative;}
+.timeline::before{
+  content:"";position:absolute;top:11px;bottom:11px;
+  left:116.5px;width:1px;background:var(--line);
+}
+.tnode{display:grid;grid-template-columns:104px 26px 1fr;align-items:start;}
+.tnode .when{
+  font-size:13px;font-weight:700;color:var(--primary);text-align:right;
+  padding-right:10px;line-height:22px;font-variant-numeric:tabular-nums;
+}
+.tnode .axis{display:flex;justify-content:center;}
+.tnode .dot{position:relative;z-index:1;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--primary);margin-top:6px;}
+.tnode.hot .dot{background:var(--accent);border-color:var(--accent);}
+.tnode .body{padding:0 0 22px 14px;}
+.tnode:last-child .body{padding-bottom:0;}
+.tnode .what{font-weight:700;font-size:15px;margin:0 0 3px;line-height:1.55;}
+.tnode .why{font-size:14px;color:var(--ink-2);margin:0;line-height:1.7;}
+
+/* ===== 待确认 ===== */
+.todo{border-top:1px solid var(--line);}
+.todo .t{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line-2);}
+.todo .t .n{font-family:var(--serif);font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;font-size:15px;}
+.todo .t .c{font-size:14px;line-height:1.72;color:var(--ink);}
+.todo .t .c b{font-weight:700;}
+
+/* ===== 信源索引 ===== */
+.srcgrp{margin-bottom:28px;}
+.srcgrp h3{margin-top:0;}
+.srclist{margin:0;padding:0;}
+.srcitem{display:grid;grid-template-columns:112px 1fr;gap:12px;margin-bottom:12px;list-style:none;}
+.srclabel{font-size:12.5px;color:var(--ink-3);font-weight:700;line-height:1.6;}
+.srcbody{font-size:14px;line-height:1.7;overflow-wrap:anywhere;}
+.srcfield{display:block;margin-top:2px;font-size:12.5px;color:var(--ink-3);}
+
+footer{padding:34px 0 56px;color:var(--ink-3);font-size:13px;line-height:1.8;}
+footer b{color:var(--ink-2);}
+
+@media (max-width:960px){
+  .strip{grid-template-columns:repeat(2,1fr);}
+  .strip .cell:nth-child(2){border-right:0;}
+  .strip .cell{border-bottom:1px solid var(--line-2);padding-right:16px;}
+  .strip .cell:nth-child(3),.strip .cell:nth-child(4){border-bottom:0;}
+  .findings{grid-template-columns:1fr;}
+  .findings .f{border-right:0;border-bottom:1px solid var(--line-2);padding:20px 0 14px;}
+  .findings .f:last-child{border-bottom:0;}
+  .tablewrap{border:0;overflow:visible;}
+  table{min-width:0;table-layout:auto;display:block;}
+  thead{display:none;}
+  tbody{display:block;}
+  tbody tr{display:block;border:1px solid var(--line);margin-bottom:14px;padding:4px 0;}
+  tbody td{display:grid;grid-template-columns:88px 1fr;gap:10px;border-bottom:1px solid var(--line-2);padding:10px 14px;font-size:13.5px;}
+  tbody td:last-child{border-bottom:0;}
+  tbody td::before{
+    content:attr(data-label);font-size:12.5px;color:var(--ink-3);font-weight:700;line-height:1.6;
+  }
+  .chart{height:640px;}
+  .chart.tall{height:820px;}
+  .tnode{grid-template-columns:78px 20px 1fr;}
+  .tnode .when{font-size:12px;padding-right:7px;}
+  .tnode .body{padding-left:10px;}
+  .timeline::before{left:87.5px;}
+  .meta-row{font-size:14px;}
+  .strip .lbl{font-size:13.5px;}
+  .findings .f p{font-size:14.5px;}
+  tbody td{font-size:14.5px;grid-template-columns:98px 1fr;}
+  tbody td::before{font-size:13px;}
+  .dev{font-size:14px;}
+  .tablewrap a.ext{display:inline-block;padding:10px 0;}
+  .srcitem{grid-template-columns:1fr;gap:2px;}
+  .srclabel{font-size:13px;}
+  .srcbody{font-size:14.5px;}
+  .kicker{font-size:14px;}
+  .strip .lbl{font-size:14px;}
+  .tag{font-size:14px;}
+  h2.sec .no{font-size:14px;}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px;}
+  .chart{height:720px;}
+  .tnode{grid-template-columns:66px 16px 1fr;}
+  .timeline::before{left:73.5px;}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">国产 AI 音乐调研 · 2026 年 10 月口径</p>
+    <h1 class="title">中国 AI 音乐生成产品与开源模型调研</h1>
+    <p class="subtitle">覆盖 15 个可评分对象：谁在做、能免费用多少、会员卖多少钱、生成质量处在什么水位。所有数字与网址均附可追溯来源。</p>
+    <div class="meta-row">
+      <span>数据口径：<b>截至 2026-10-07</b></span>
+      <span>计价货币：<b>人民币（CNY）</b></span>
+      <span>信源交叉：<b>官方站点 / 科技媒体 / 用户社区</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="strip">
+    <div class="cell"><div class="num">15</div><div class="lbl">可评分产品与模型</div></div>
+    <div class="cell"><div class="num">8</div><div class="lbl">含完全免费或开源方案</div></div>
+    <div class="cell"><div class="num">38–99</div><div class="lbl">主流付费档月费区间（元）</div></div>
+    <div class="cell"><div class="num">2</div><div class="lbl">大厂被核验为无音乐生成能力</div></div>
+  </div>
+</div>
+
+<main class="wrap">
+
+<section>
+  <h2 class="sec"><span class="no">01</span>核心结论</h2>
+  <p class="lede">国内 AI 音乐生成已从单点工具进入“大厂生态 + 创业公司 + 开源基座”三线并行阶段。三方各有所长，也各自暴露了短板。</p>
+  <div class="findings">
+    <div class="f">
+      <p class="t">第一梯队由“自研大模型”占据</p>
+      <p>音潮、MELO、Mureka、HappyShrimp、MiniMax 五家的综合评分均在 8.2 以上。它们的共同点是自研基座模型与稳定的中文人声表现，差别主要落在版权条款与导出能力上。</p>
+    </div>
+    <div class="f">
+      <p class="t">免费仍是获客主战场</p>
+      <p>妙响、海绵音乐、网易天音与开源 ACE-Step 可零成本使用；其余多为“每日免费积分 + 订阅”双轨。但免费档普遍附带水印或版权限制，商用前需逐条核对协议。</p>
+    </div>
+    <div class="f">
+      <p class="t">厂商能力边界清晰</p>
+      <p>美图只做音乐到视觉的 MVLAND，没有音乐生成；智谱、百川、讯飞也没有独立写歌产品。商汤走 B 端 API，快手把音乐绑在可灵的视频生成里。</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="sec"><span class="no">02</span>产品字段总表</h2>
+  <p class="lede">同一行回答同一组问题：谁开发的、去哪用、免费用多少、会员多少钱、质量与短板在哪。评分为主观共识评分，非厂商指标。</p>
+  <div class="tablewrap">
+    <table>
+      <colgroup>
+        <col style="width:15%"><col style="width:8%"><col style="width:13%">
+        <col style="width:20%"><col style="width:20%"><col style="width:24%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>产品 / 开发方</th>
+          <th>评分</th>
+          <th>官方入口</th>
+          <th>免费额度</th>
+          <th>价格（人民币）</th>
+          <th>特点与局限</th>
+        </tr>
+      </thead>
+      <tbody id="mainTable">
+      </tbody>
+    </table>
+  </div>
+  <p class="caption" id="tableCaption"></p>
+</section>
+
+<section>
+  <h2 class="sec"><span class="no">03</span>生成质量评分对比</h2>
+  <p class="lede">评分为主观共识评分，由作者综合科技媒体评测结论与用户社区口碑给出，满分 10 分。维度权重：中文词曲能力 25%、人声质感与中文咬字 25%、风格与功能多样性 20%、生成稳定性 15%、时长与可控性 15%。</p>
+  <div class="chart-card">
+    <p class="chart-title">15 个对象的综合质量评分（满分 10）</p>
+    <p class="chart-sub">颜色区分获取门槛：深青为可免费使用（含开源自部署），赭色为以付费订阅或 API 调用为主。</p>
+    <div class="chart tall" id="chartScore"></div>
+    <p class="caption">数据口径：2026-10-07。评分非厂商官方指标；美图、智谱、百川、讯飞因无音乐生成能力不参与评分。</p>
+  </div>
+  <p>评分分布显示两个事实：其一，进入 8.2 分以上的产品全部拥有自研基座模型，“套壳调用”难以进入第一梯队；其二，开源侧的 ACE-Step 以 7.8 分站上第二梯队前列，与商业产品的差距已明显收窄，本地部署 4GB 显存即可运行，对预算敏感的个人创作者是可行替代。</p>
+</section>
+
+<section>
+  <h2 class="sec"><span class="no">04</span>价格与免费额度的位置</h2>
+  <p class="lede">把“最低付费门槛”和“质量评分”放在同一坐标系，可以看出一个反直觉的现象：免费产品并不必然排在低分区。</p>
+  <div class="chart-card">
+    <p class="chart-title">最低付费月费与质量评分的关系</p>
+    <p class="chart-sub">横轴为可查证的最低付费月费（元/月），完全免费者记为 0；纵轴为综合评分。仅纳入价格口径明确的 8 个对象。</p>
+    <div class="chart" id="chartPrice"></div>
+    <p class="caption">未纳入本图的 7 个对象原因：HappyShrimp（定价未公布）、通义 Fun-Music（按量计费未公示单价）、可灵与腾讯启明星（积分制，无月费口径）、商汤（B 端按首计费）、唱鸭（国内价格未公示）、MELO 之外的妙音以基础版 39 元/月计入。完整价格见总表。</p>
+  </div>
+  <p>图上左上角聚集了四个横坐标为 0 的点：妙响、ACE-Step、网易天音、海绵音乐。它们用免费额度换用户规模，代价是水印、版权限制或功能上限。右侧四个付费点落在 38–88 元区间，Mureka 的 88 元/月是国内 C 端最高档，其溢价主要来自商业使用权与分轨导出。</p>
+</section>
+
+<section>
+  <h2 class="sec"><span class="no">05</span>2025—2026 关键节点</h2>
+  <p class="lede">按公开可查的发布、上线与接口策略变化时点排列，用于理解竞争格局是怎么形成的。</p>
+  <div class="timeline">
+    <div class="tnode"><div class="when">2025.05</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">ACE-Step 开源发布</p><p class="why">阶跃星辰与 ACE Studio 联合发布开源音乐大模型，成为国内开源侧的起点。</p></div></div>
+    <div class="tnode"><div class="when">2025.07</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">音潮亮相 WAIC</p><p class="why">自由量级携全链路自研音乐大模型首秀世界人工智能大会，同期上线音潮 App。</p></div></div>
+    <div class="tnode"><div class="when">2025.08</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">音潮音乐通过生成式 AI 服务备案</p><p class="why">备案号 Shanghai-YinChaoYinYue-202507160059，取得面向市场规模化商用的资质。</p></div></div>
+    <div class="tnode"><div class="when">2026.02</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">音潮 V3.0 发布并免费开放试用</p><p class="why">网页端与 App 面向所有用户免费开放，演唱质量与编曲丰富度提升。</p></div></div>
+    <div class="tnode hot"><div class="when">2026.04</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">ACE-Step 1.5 XL 权重开放</p><p class="why">开源侧出现约 4B DiT 的更大参数变体，显存占用仍控制在 4GB 以内。</p></div></div>
+    <div class="tnode"><div class="when">2026.04</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">MiniMax Music 2.6 全球内测</p><p class="why">14 天限免，C 端每账号每日 500 首免费创作额度。</p></div></div>
+    <div class="tnode"><div class="when">2026.05</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">通义 Fun-Music-v1 开启邀测</p><p class="why">阿里云百炼上线音乐生成模型，48kHz 整曲输出，仅限华北 2（北京）。</p></div></div>
+    <div class="tnode"><div class="when">2026.06</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">妙响焕新、网易天音升级</p><p class="why">妙响接过抖音音乐创作实验室，主打一站式创作与发行；网易天音打通词曲唱与一键发行。</p></div></div>
+    <div class="tnode hot"><div class="when">2026.08</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">音潮 V4.0 与 HappyShrimp 相继上线</p><p class="why">音潮完成底层重构并支持十种语言；阿里 ATH 发布快乐虾米并与太合音乐达成合作。</p></div></div>
+    <div class="tnode"><div class="when">2026.08</div><div class="axis"><i class="dot"></i></div><div class="body"><p class="what">MiniMax 音乐 API 收缩</p><p class="why">付费音乐接口不再面向新用户、免费接口停服，能力转向 MiniMax Audio 与开源版本。</p></div></div>
+  </div>
+  <p style="margin-top:22px;">三条线索并行：开源侧靠 ACE-Step 持续抬高上限；创业公司侧由音潮完成“亮相—备案—规模商用”的闭环；大厂侧集中在 2026 年上半年落地。而 MiniMax 的接口收缩说明，这条赛道的商业化路径仍在摸索。</p>
+</section>
+
+<section>
+  <h2 class="sec"><span class="no">06</span>大厂音乐生成能力核验</h2>
+  <p class="lede">用户情报中点名核验的厂商，逐一给出结论；没有能力就如实写“没有”。</p>
+  <div class="tablewrap">
+    <table>
+      <colgroup><col style="width:15%"><col style="width:17%"><col style="width:68%"></colgroup>
+      <thead>
+        <tr><th>厂商</th><th>是否有音乐生成</th><th>核验结论</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="厂商"><span class="pname">智谱</span></td>
+          <td data-label="是否有音乐生成"><span class="tag">无独立产品</span></td>
+          <td data-label="核验结论">GLM 系列聚焦文本、多模态与智能体，语音侧为 TTS 与实时语音，未见音乐生成模型或接口。音乐能力通过与 Muse AI 合作落地，后者“一句话成歌”由智谱模型驱动；Muse AI 国内订阅为普通会员 38 元/月、尊享会员 68 元/月。<a class="ext" href="https://bigmodel.cn/pricing">智谱定价页</a> · <a class="ext" href="https://apps.apple.com/cn/app/id6497651310?l=en-GB">Muse AI 订阅说明</a></td>
+        </tr>
+        <tr>
+          <td data-label="厂商"><span class="pname">商汤科技</span></td>
+          <td data-label="是否有音乐生成"><span class="tag paid">有，仅 B 端 API</span></td>
+          <td data-label="核验结论">SenseAudio 开放平台提供 SenseAudio-Music-2.0 完整歌曲生成（1 元/首，优惠后 0.5 元/首）与 SenseAudio-Sound-Effect-1.0 音效生成（0.08 元/组），输出立体声 32-bit、最长 6 分钟，无 C 端写歌产品。<a class="ext" href="https://docs.senseaudio.cn/guides/account/model-list-billing">模型与计费说明</a><br><a class="ext" href="https://senseaudio.cn/tokenplan">Token Plan</a></td>
+        </tr>
+        <tr>
+          <td data-label="厂商"><span class="pname">百川智能</span></td>
+          <td data-label="是否有音乐生成"><span class="tag">未发现</span></td>
+          <td data-label="核验结论">本轮在其官网、开放平台与媒体报道中均未检索到音乐生成产品或接口，判为无音乐生成能力；因未见官方否定性说明，保留“待确认”标记。</td>
+        </tr>
+        <tr>
+          <td data-label="厂商"><span class="pname">科大讯飞</span></td>
+          <td data-label="是否有音乐生成"><span class="tag">未发现</span></td>
+          <td data-label="核验结论">以语音合成、配音与音频处理为主（讯飞智作），未检索到独立 AI 写歌产品。第三方渠道出现的“1499 元/月、2999 元/月”企业版报价与音乐生成无关，未在官方页面核实。</td>
+        </tr>
+        <tr>
+          <td data-label="厂商"><span class="pname">美图公司</span></td>
+          <td data-label="是否有音乐生成"><span class="tag">无</span></td>
+          <td data-label="核验结论">2026 年中期报告显示其产品矩阵为 AI 图像、AI 视频、AI 设计、AI 营销与 AI 影像生产线。旗下 MVLAND 定位“AI 音乐视频创作平台”，做的是音乐到视觉（理解歌词与情绪并生成 MV），官方从未宣称音乐生成能力。<a class="ext" href="https://corp-static.meitu.com/corp-new/20260924/2026092401436_c.pdf">美图 2026 年中期报告</a><br><a class="ext" href="https://www.meitu.com/zh/business">产品矩阵</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2 class="sec"><span class="no">07</span>信源索引</h2>
+  <p class="lede">按产品分组，标注每条来源支撑哪些字段。三类信源交叉验证：官方站点、科技媒体、用户社区。</p>
+  <div id="sourceIndex"></div>
+</section>
+
+<section>
+  <h2 class="sec"><span class="no">08</span>待确认与无法核实项</h2>
+  <p class="lede">以下条目在本轮公开检索范围内无法取得可靠官方口径，如实列出，未作推测填补。</p>
+  <div class="todo" id="todoList"></div>
+</section>
+
+<footer>
+  <p><b>方法与免责：</b>本报告信息采集截止北京时间 2026 年 10 月 7 日，全部价格以人民币计（引用海外定价时另注美元原值）。“生成音乐质量评分”为主观共识评分，由作者综合科技媒体评测结论与用户社区口碑给出，非厂商官方指标，也不等同于客观基准测试；同一产品在不同曲风与语言下表现差异较大。</p>
+  <p><b>已剔除的非官方来源：</b>happyshrimp.art、mureka-ai.com 等第三方域名自称官方或提供更低报价，均不作为官方依据；搜狐号等带推广性质的内容源已在引用时单独标注。</p>
+  <p>价格与免费额度变动频繁，正式采购前请以厂商官方页面为准。</p>
+</footer>
+
+<script>
+/* ================= 数据 ================= */
+const PRODUCTS = [
+  {
+    name:"音潮 V4.0",
+    dev:"自由量级（上海）信息科技 / 音潮涌现（上海）智能科技",
+    score:8.3, avail:"paid",
+    site:{label:"web.yinchaoyongxian.com", url:"https://web.yinchaoyongxian.com/studio/about-us"},
+    free:"积分制免费额度；社区实测每日约 20 积分、极简写歌约 5 积分一首（官方未公示完整口径）",
+    price:"周会员 ¥16 / ¥19 / ¥22；月会员 ¥38（连续订阅）/ ¥42 / ¥49；年会员 ¥288 / ¥369；75 积分 ¥9",
+    note:"中文咬字与东方情绪氛围突出，支持十语种与纯音乐生成，生成物所有权归用户。局限：低价会员档带音频水印，用户实测反映分轨导出能力偏弱。"
+  },
+  {
+    name:"ACE-Step 1.5 XL",
+    dev:"阶跃星辰（StepFun）× ACE Studio（时域科技）",
+    score:7.8, avail:"free",
+    site:{label:"github.com/ace-step/ACE-Step-1.5", url:"https://github.com/ace-step/ACE-Step-1.5"},
+    free:"模型权重与代码完全免费，可自行部署；官方项目页提供体验入口",
+    price:"免费（自备算力，4GB 显存以内可本地运行，模型约 5GB）",
+    note:"国产开源侧事实基准，A100 上单曲生成不到 2 秒、RTX 3090 不到 10 秒，权重 MIT 允许商用。局限：XL Turbo 单次约 30 秒级，“超越多数商业模型”为项目自述口径，中文人声缺少独立第三方横评。"
+  },
+  {
+    name:"HappyShrimp 1.0（快乐虾米）",
+    dev:"阿里巴巴 ATH（Token Hub）事业群",
+    score:8.2, avail:"paid",
+    site:{label:"happyshrimp.cn", url:"https://www.happyshrimp.cn/"},
+    free:"新用户发放大额免费积分体验",
+    price:"正式订阅价格未公布（beta 期，待确认）",
+    note:"端到端整曲生成，对情绪、故事与记忆的自然语言理解好，与太合音乐集团达成战略合作。局限：公测期稳定性待观察，定价未明。"
+  },
+  {
+    name:"通义 Fun-Music",
+    dev:"通义实验室 / 阿里云百炼",
+    score:7.8, avail:"paid",
+    site:{label:"阿里云百炼文档", url:"https://help.aliyun.com/zh/model-studio/fun-music"},
+    free:"邀测，无公开免费额度",
+    price:"阿里云百炼按量计费，单价未在公开文档列出（待确认）",
+    note:"歌词跟随精准、48kHz 高保真整曲输出，背靠百炼工程化能力。局限：仅 API、仅华北 2 地域，邀测门槛高。"
+  },
+  {
+    name:"可灵 Kling（音乐维度）",
+    dev:"北京快手科技有限公司",
+    score:7.0, avail:"paid",
+    site:{label:"app.klingai.com", url:"https://app.klingai.com"},
+    free:"无独立写歌免费额度，消耗可灵通用积分",
+    price:"随可灵会员与积分套餐计费，无单独音乐定价",
+    note:"2.6 版“音画同出”可在单次生成中输出旁白、唱歌、Rap、音效与环境音，音画同步一致性好。局限：音频与视频强绑定，单条最长 10 秒，不是独立音乐创作工具。"
+  },
+  {
+    name:"美图 MVLAND",
+    dev:"美图公司",
+    score:null, avail:"none",
+    site:{label:"meitu.com", url:"https://www.meitu.com/zh/business"},
+    free:"—",
+    price:"—",
+    note:"定位“AI 音乐视频创作平台”，通过音乐分析 Agent 与创意画布把音乐的节奏与情绪转化为视觉画面。本轮核验：美图不具备 AI 音乐生成能力，不参与评分。"
+  },
+  {
+    name:"网易天音",
+    dev:"网易云音乐",
+    score:7.5, avail:"free",
+    site:{label:"tianyin.music.163.com", url:"https://tianyin.music.163.com/"},
+    free:"新用户赠约 25 积分，每日签到与任务发放额度，做一首歌消耗少量积分",
+    price:"无公开充值渠道，官方长期以免费策略运营",
+    note:"词曲编唱发行闭环，可一键发到网易云音乐，国风曲库与虚拟歌手音色有积累。局限：额度以签到积分发放，重度使用受限，生成偏模板化。"
+  },
+  {
+    name:"妙响 MUSE SONG",
+    dev:"抖音 / 汽水音乐（字节跳动）",
+    score:7.8, avail:"free",
+    site:{label:"music.douyin.com/studio", url:"https://music.douyin.com/studio"},
+    free:"完全免费，无积分、无 VIP；社区实测每日约 20 次",
+    price:"免费",
+    note:"前身为抖音音乐创作实验室，打通“生成—精编—发行”，AI 不参与收益分成。局限：用户社区实测反映智能和声、一键人声旋律等精编功能偶有跑调。"
+  },
+  {
+    name:"海绵音乐",
+    dev:"字节跳动",
+    score:7.3, avail:"free",
+    site:{label:"haimian.com", url:"https://www.haimian.com/"},
+    free:"完全免费，抖音账号登录即可创作",
+    price:"免费（官方未公布付费方案）",
+    note:"自研 SeedMusic 1.0，中文人声自然、操作极简。局限：版权按改编比例等与平台“共同享有”，个人非商业用途之外需平台授权，平台保留独占性商业开发权；免费版导出带水印。"
+  },
+  {
+    name:"腾讯 启明星 / Vemus 未音",
+    dev:"腾讯音乐娱乐集团（TME）",
+    score:7.5, avail:"paid",
+    site:{label:"y.qq.com/vemus", url:"https://y.qq.com/vemus/index.html"},
+    free:"每日登录赠 188 积分",
+    price:"10 元 500 积分（约可生成 5 首）；AI 母带发行费 29.9 元/首",
+    note:"曲库与发行生态最强，未音可一键发行至 QQ 音乐、酷狗、酷我、全民 K 歌、JOOX。局限：积分成本不低，社区反映单首消耗数百至上千积分，AI 内容发行审核严格。"
+  },
+  {
+    name:"MiniMax Music",
+    dev:"上海稀宇科技有限公司（MiniMax）",
+    score:8.2, avail:"paid",
+    site:{label:"minimaxi.com", url:"https://www.minimaxi.com/"},
+    free:"2026-04 内测期曾每日赠送 500 首；现已停止免费与付费音乐 API",
+    price:"MiniMax Audio 国际版 Starter $5/月、Standard $30/月、Pro $99/月；国内历史口径 36 元/月（待确认现行价）",
+    note:"人声质感与情感还原是多家横评的公认强项。局限：国内音乐接口已不对新用户开放，需走 MiniMax Audio 或自行部署开源 MiniMax Music 3。"
+  },
+  {
+    name:"Mureka V9.5",
+    dev:"昆仑万维",
+    score:8.3, avail:"paid",
+    site:{label:"mureka.ai", url:"https://www.mureka.ai/"},
+    free:"新用户赠送试用额度；B 端 API 按量计费",
+    price:"国内 C 端会员 88 元/月（最多 180 首，含商业使用权）；国际版 Pro $7.17/月起、Premier $21.59/月起",
+    note:"编曲克制、人声质感好，支持 Remix、局部替换、分轨与 MIDI 导出，商业化成熟度最高。局限：定价高于 Suno（月付 10 美元约 ¥70），协议对版权登记有不确定性提示。"
+  },
+  {
+    name:"MELO 音乐",
+    dev:"北京灵犀深智科技有限公司",
+    score:8.4, avail:"paid",
+    site:{label:"51melo.com", url:"https://www.51melo.com/"},
+    free:"每日自动重置免费创作积分，登录即领",
+    price:"月卡 38 元，年卡优惠力度更大",
+    note:"付费权益含无损下载、12 分轨导出与完整商用版权，微信小程序与 PC 网页全端互通。局限：可查到的评测多为推广性质软文，“中文咬字 97.8%”“最长 8 分钟”出自第三方导航站且未公开测量方法。"
+  },
+  {
+    name:"妙音 AI 音乐",
+    dev:"妙音团队（运营主体未公开）",
+    score:7.3, avail:"paid",
+    site:{label:"miaoyin.live", url:"https://www.miaoyin.live/pricing"},
+    free:"注册即赠体验积分（赠送数量口径待确认）",
+    price:"基础版 ¥39/月（250 积分，个人授权）；标准版 ¥99/月（600 积分，含商业使用授权）",
+    note:"国风音乐、方言音乐与音轨分离转谱形成差异化，定价分层清晰。局限：品牌认知度低，基础版不含商业使用授权。"
+  },
+  {
+    name:"唱鸭 AI（天谱乐大模型）",
+    dev:"趣丸科技",
+    score:7.0, avail:"free",
+    site:{label:"singduck.cn", url:"https://www.singduck.cn/"},
+    free:"基础功能免费；创作点数靠每日登录、发布作品、分享作品获得，充值比例 1:10",
+    price:"国内会员价格未公开公示",
+    note:"2019 年上线，弹唱与说唱社区沉淀深，天谱乐大模型支持由图片或视频生成歌曲。局限：AI 作曲非核心卖点，专业度与时长上限有限。"
+  }
+];
+
+const SOURCES = [
+  {p:"音潮", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://web.yinchaoyongxian.com/studio/about-us\">音潮「关于我们」</a>","开发方、成立时间、产品定位、官方网址"],
+    ["官方商店","<a class=\"ext\" href=\"https://apps.apple.com/cn/app/id6746826789?platform=vision\">App Store 音潮订阅页</a>","会员与积分价格（周 ¥16/¥19/¥22、月 ¥38/¥42/¥49、年 ¥288/¥369）"],
+    ["备案文件","<a class=\"ext\" href=\"https://www.tjcac.gov.cn/wxdt/qg/202601/W020260112388221575456.pdf\">生成式人工智能服务已备案信息</a>","备案主体与备案号"],
+    ["企业信息","<a class=\"ext\" href=\"https://shuidi.cn/company-95e11f77252b47abd1290f7df3a8d601.html\">音潮涌现（上海）智能科技有限公司</a>","运营主体与注册地"],
+    ["企业信息","<a class=\"ext\" href=\"https://www.tianyancha.com/brand/bb8d7832116\">天眼查 · 自由量级</a>","开发方成立时间与融资轮次"],
+    ["科技媒体","<a class=\"ext\" href=\"https://eu.36kr.com/zh/p/3446725096560009\">36 氪：音潮音乐通过生成式 AI 服务备案</a>","合规状态"],
+    ["科技媒体","<a class=\"ext\" href=\"https://www.tmtpost.com/8030321.html\">钛媒体：AI 音乐混战</a>","“价格友好、全链路自研”的评测结论与人声对比"],
+    ["科技媒体・含推广性质","<a class=\"ext\" href=\"https://news.sohu.com/a/1079434796_122546696\">搜狐号：2026 年 9 月格局</a>","开放平台 API 价格（歌曲 ¥0.22/首、歌词 ¥0.07/次）"],
+    ["用户社区","<a class=\"ext\" href=\"https://www.iesdouyin.com/share/video/7681577211049040625\">抖音实测：音潮 V4.0 亮点</a>","版权归属用户、语种与纯音乐生成能力"],
+    ["用户社区","<a class=\"ext\" href=\"https://juejin.cn/post/7654513844086128667\">掘金：MELO 与 Suno 横向对比</a>","低价会员档带水印的实测结论"]
+  ]},
+  {p:"ACE-Step", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://acestep.io/ace-step-15\">acestep.io/ace-step-15</a>","发布方（ACE Studio 与 StepFun）、LM + DiT 架构"],
+    ["官方项目页","<a class=\"ext\" href=\"https://ace-step.github.io/ace-step-v1.5.github.io/\">ACE-Step 1.5 项目页</a>","性能指标与显存占用"],
+    ["开源仓库","<a class=\"ext\" href=\"https://github.com/ace-step/ACE-Step-1.5\">GitHub: ace-step/ACE-Step-1.5</a>","开源地址"],
+    ["权重页","<a class=\"ext\" href=\"https://modelscope.ai/models/ACE-Step/acestep-v15-xl-base\">ModelScope：XL — Base (4B DiT)</a>","XL 规格、联合主导方与发布时点"],
+    ["许可证说明","<a class=\"ext\" href=\"https://docs.cnaps.ai/ace-step-1-5\">cnaps.ai 模型文档</a>","权重 MIT、文本编码器 Apache 2.0 与商用条件"],
+    ["科技媒体","<a class=\"ext\" href=\"https://studio.aifilms.ai/blog/ace-step-1-5-music-generation-open-source\">AI FILMS：ACE-Step 1.5 评测</a>","基准对比结论与官方资源索引"],
+    ["用户社区","<a class=\"ext\" href=\"https://www.gstars.dev/repo/fspecii/ace-step-ui\">GStars：ace-step-ui 部署说明</a>","本地部署流程与模型体积约 5GB"]
+  ]},
+  {p:"HappyShrimp", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://www.happyshrimp.cn/\">happyshrimp.cn</a>（国内）・<a class=\"ext\" href=\"https://www.happyshrimp.ai/\">happyshrimp.ai</a>（海外）","官方网址"],
+    ["科技媒体","<a class=\"ext\" href=\"http://m.toutiao.com/group/7674989623194206730/\">新京报贝壳财经：阿里发布 HappyShrimp</a>","发布日（2026-08-17）、双入口、产品定位"],
+    ["科技媒体","<a class=\"ext\" href=\"https://www.baijing.cn/newsflashes_txzq/18929\">白鲸出海：阿里推出 AI 音乐模型快乐虾米</a>","发布时间与自然语言创作能力"],
+    ["科技媒体","<a class=\"ext\" href=\"https://we0.ai/zh/articles/alibaba-launches-happyshrimp-1-0-an\">We0：HappyShrimp 1.0 发布</a>","国内/海外入口与 beta 状态"],
+    ["用户社区","<a class=\"ext\" href=\"https://www.iesdouyin.com/share/video/7675303192640474409\">抖音官方账号视频</a>","产品发布节奏"],
+    ["非官方标注","<a class=\"ext\" href=\"https://happyshrimp.art/zh\">happyshrimp.art</a>","自称独立工作室，与 ATH 无隶属关系，不得作为官方来源"]
+  ]},
+  {p:"通义 Fun-Music 与阿里其他音乐模型", items:[
+    ["官方文档","<a class=\"ext\" href=\"https://help.aliyun.com/zh/model-studio/fun-music\">阿里云百炼：Fun-Music</a>","模型名、邀测状态、地域限制、48kHz 输出"],
+    ["说明","Qwen-Music、WanSong v1.0 等仅为技术报告形态","未产品化，定价待确认"]
+  ]},
+  {p:"可灵 Kling（快手）", items:[
+    ["官方新闻稿","<a class=\"ext\" href=\"https://ir.kuaishou.com/zh-hans/news-releases/news-release-details/keling26moxingtuichuyinhuatongchunengli/\">可灵 2.6 推出“音画同出”能力</a>","语音、音效与环境音能力，单条最长 10 秒"],
+    ["官方财报材料","<a class=\"ext\" href=\"https://ir.kuaishou.com/static-files/f366a227-eddf-4e56-9cfa-f544e9503303\">快手科技 2026 年第一季度演示材料</a>","可灵 3.0 与全模态输入输出"],
+    ["官方入口","<a class=\"ext\" href=\"https://app.klingai.com\">app.klingai.com</a>","产品入口"],
+    ["用户社区・第三方","<a class=\"ext\" href=\"https://www.kling26.com/\">kling26.com</a>","“唱歌与音乐生成”功能描述，非官方来源"]
+  ]},
+  {p:"美图（MVLAND）", items:[
+    ["官方产品页","<a class=\"ext\" href=\"https://www.meitu.com/zh/business\">美图公司产品矩阵</a>","“MVLAND：为音乐拍大片”定位，全文无音乐生成产品"],
+    ["官方财报","<a class=\"ext\" href=\"https://corp-static.meitu.com/corp-new/20260924/2026092401436_c.pdf\">美图公司 2026 年中期报告</a>","MVLAND 为 AI 音乐视频创作平台、音乐转视觉工作流"],
+    ["官方新闻","<a class=\"ext\" href=\"https://www.meitu.com/zh/media/438\">美图影像节发布八款 AI 产品</a>","产品矩阵范围"],
+    ["科技媒体","<a class=\"ext\" href=\"https://www.ifanr.com/1670054\">爱范儿：美图一口气发了 8 款产品</a>","MVLAND 的 MV 生成流程"],
+    ["科技媒体","<a class=\"ext\" href=\"https://www.nfnews.com/content/ryepexRzog.html\">南方+：美图上半年付费订阅用户突破 1844 万</a>","MVLAND 每付费用户月均消费约 220 元"],
+    ["用户社区","<a class=\"ext\" href=\"https://www.iesdouyin.com/share/video/7654423714418740506\">抖音：2026 美图影像节实测</a>","从歌词、节奏、情绪理解歌曲的使用体验"]
+  ]},
+  {p:"网易天音", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://tianyin.music.163.com/\">tianyin.music.163.com</a>","官方网址"],
+    ["官方账号","<a class=\"ext\" href=\"https://y.music.163.com/m/user?id=7875157325\">网易天音官方号（网易云音乐）</a>","官方域名与“词曲编唱全 AI 完成”定位"],
+    ["科技媒体","<a class=\"ext\" href=\"http://tech.chinadaily.com.cn/a/202606/12/WS6a2bcbcea310942cc49b17fb.html\">中国日报网：网易云音乐 AI 写歌功能全新升级</a>","2026-06-12 升级与四大功能"],
+    ["科技媒体","<a class=\"ext\" href=\"https://cn.chinadaily.com.cn/a/202512/29/WS69524229a310942cc49992f3.html\">中国日报网：网易云音乐上线 AI 歌曲专属激励金</a>","AI 写歌免费功能上线时点与免费策略"],
+    ["教育机构站点","<a class=\"ext\" href=\"https://net.dac.edu.cn/detail/1611_3e2e93766ec57b1b383545ebe44ebcac.html\">大连艺术学院教育技术中心：网易天音介绍</a>","一键写歌、智能编曲与风格库功能口径"],
+    ["用户社区","<a class=\"ext\" href=\"https://www.iesdouyin.com/share/video/7665912193221274545\">抖音实测：免费 AI 音乐工具对比</a>","“新用户赠约 25 积分、用完需充值”的社区口径"]
+  ]},
+  {p:"妙响 MUSE SONG", items:[
+    ["官方入口","<a class=\"ext\" href=\"https://music.douyin.com/studio\">music.douyin.com/studio</a>","官方创作入口"],
+    ["科技媒体","<a class=\"ext\" href=\"http://www.xinhuanet.com/shshpd/20260612/6b1a4bf6aff94a62b32f2445eab16eaf/c.html\">新华网：妙响焕新上线</a>","2026-06-12 上线与创作、精编、发行一体化定位"],
+    ["用户社区","<a class=\"ext\" href=\"https://www.iesdouyin.com/share/video/7650263045968579859\">抖音：妙响实操教学</a>","“无积分、无 VIP、每天 20 次”与原名抖音音乐创作实验室"],
+    ["用户社区","<a class=\"ext\" href=\"https://www.iesdouyin.com/share/video/7645225945549567865\">抖音：妙响配乐实测</a>","智能演唱、智能和声、AI 不参与分成"],
+    ["第三方导航・谨慎引用","<a class=\"ext\" href=\"https://www.navcn.cn/tool/1795.html\">NavCN 妙响条目</a>","“Sway v5.5 模型驱动”说法，官方未披露"]
+  ]},
+  {p:"海绵音乐", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://www.haimian.com/\">haimian.com</a>","官方网址与 SeedMusic 1.0 模型标识"],
+    ["官方说明","<a class=\"ext\" href=\"https://www.haimian.com/about\">关于海绵音乐</a>","免费定位与创作方式"],
+    ["官方协议","<a class=\"ext\" href=\"https://lf3-cdn-tos.draftstatic.com/obj/ies-hotsoon-draft/music/haimian_terms.html\">海绵音乐用户协议</a>","平台内容与知识产权归属条款"],
+    ["科技媒体","<a class=\"ext\" href=\"https://36kr.com/p/3855833364314755\">36 氪：AI 音乐混战</a>","版权“共同享有”、需平台授权、平台保留独占性商业开发权"],
+    ["第三方产品库","<a class=\"ext\" href=\"https://g.pconline.com.cn/ai/product/79.html\">太平洋科技 AI 产品库：海绵音乐</a>","免费版导出带水印与“完整商用权”说法（与 36 氪口径冲突）"]
+  ]},
+  {p:"腾讯音乐（启明星 / Vemus 未音）", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://y.qq.com/venus\">腾讯音乐·启明星</a>・<a class=\"ext\" href=\"https://y.qq.com/vemus/index.html\">Vemus 未音</a>","官方入口与一键发行渠道"],
+    ["科技媒体","<a class=\"ext\" href=\"https://www.tmtpost.com/8030321.html\">钛媒体：AI 音乐混战</a>","积分定价 10 元 500 积分、每日登录赠 188 积分"],
+    ["科技媒体","<a class=\"ext\" href=\"https://36kr.com/p/3855833364314755\">36 氪：AI 音乐混战</a>","同一积分口径的交叉印证"],
+    ["科技媒体","<a class=\"ext\" href=\"https://m.jiemian.com/article/13910327.html\">界面新闻：别再给我推 AI 音乐了</a>","29.9 元母带费与发行激励金机制"],
+    ["科技媒体","<a class=\"ext\" href=\"http://m.toutiao.com/group/7585379280205529635/\">人民网：AI 赋能，奏响音乐产业“新乐章”</a>","启明星“AI 作歌”的图像作歌、模板作歌、对话作歌与纯音乐生成"]
+  ]},
+  {p:"MiniMax Music", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://www.minimaxi.com/\">minimaxi.com</a>・<a class=\"ext\" href=\"https://www.minimax.io/\">minimax.io</a>","官方入口"],
+    ["科技媒体","<a class=\"ext\" href=\"https://www.tmtpost.com/8030321.html\">钛媒体：AI 音乐混战</a>","国内会员价格与声贝消耗口径、人声与歌词评测结论"],
+    ["说明","2026 年 8 月音乐 API 收缩与开源 MiniMax Music 3","本轮未取得官方公告链接，标注待确认"]
+  ]},
+  {p:"Mureka（昆仑万维）", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://www.mureka.ai/\">mureka.ai</a>","官方网址与 Pro 套餐权益"],
+    ["官方订阅页","<a class=\"ext\" href=\"https://www.mureka.ai/subscribe\">Mureka Subscribe</a>","V9.5 模型、商业使用权、年付折扣"],
+    ["官方 API 页","<a class=\"ext\" href=\"https://platform.mureka.ai/pricing\">Mureka API Platform</a>","开放平台按量计费口径"],
+    ["科技媒体","<a class=\"ext\" href=\"https://36kr.com/p/3855833364314755\">36 氪：AI 音乐混战</a>","国内 C 端 88 元/月、最多 180 首、含商业使用权"],
+    ["科技媒体","<a class=\"ext\" href=\"https://www.jiemian.com/article/14599101.html\">界面新闻：谁能成为中国版 Suno</a>","同一价格口径的交叉印证"],
+    ["非官方标注","<a class=\"ext\" href=\"https://www.mureka-ai.com/pricing\">mureka-ai.com</a>","第三方站点，报价与官方不一致，不得作为官方来源"]
+  ]},
+  {p:"MELO 音乐", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://www.51melo.com/\">51melo.com</a>","官方网址与会员服务定位"],
+    ["官方商店","<a class=\"ext\" href=\"https://apps.apple.com/cn/app/melo/id6757378827?platform=mac\">App Store MELO</a>","开发者（北京灵犀深智科技）、全端互通与每日免费积分重置"],
+    ["科技媒体","<a class=\"ext\" href=\"http://www.geekpark.net/news/366685\">极客公园：2026 AI 写歌作曲工具推荐</a>","月卡 38 元与每日免费积分"],
+    ["科技媒体","<a class=\"ext\" href=\"https://g.pconline.com.cn/x/1476/14762745.html\">太平洋科技：MELO 音乐全场景商用实测</a>","定价与终端覆盖"],
+    ["用户社区","<a class=\"ext\" href=\"https://blog.51cto.com/u_16099353/14826333\">51CTO 博客：体验 MELO 音乐</a>・<a class=\"ext\" href=\"https://juejin.cn/post/7664822584768823347\">掘金：MELO 写歌全攻略</a>","无损下载、12 分轨导出、商用版权与优先生成通道"],
+    ["第三方导航・谨慎引用","<a class=\"ext\" href=\"https://aiproducthub.cn/sites/51melo.html\">AIProductHub：MELO 音乐</a>","“中文咬字 97.8%”“最长 8 分钟”，测量方法未公开"]
+  ]},
+  {p:"妙音 AI 音乐", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://www.miaoyin.live/\">miaoyin.live</a>","官网与产品模块"],
+    ["官方定价页","<a class=\"ext\" href=\"https://www.miaoyin.live/pricing\">妙音订阅与积分方案</a>","基础版 ¥39/月、标准版 ¥99/月与积分消耗规则"],
+    ["说明","市面另有同名“妙音 RVC”声音模型站点","与本产品无关，不得混用"]
+  ]},
+  {p:"唱鸭 AI", items:[
+    ["官方站点","<a class=\"ext\" href=\"https://www.singduck.cn/\">singduck.cn</a>・<a class=\"ext\" href=\"https://ai.singduck.cn/\">ai.singduck.cn</a>","官方网址"],
+    ["官方公告","<a class=\"ext\" href=\"https://quwangroup.com/news/71\">趣丸科技：夺得第三届琶洲算法大赛全球总冠军</a>","“天谱乐大模型已全面接入趣丸科技旗下唱鸭 App”"],
+    ["科技媒体","<a class=\"ext\" href=\"http://m.toutiao.com/group/7396974947400221225/\">扬子晚报：趣丸科技携 AI 音乐新品亮相 ChinaJoy</a>","上传图片或视频一键生成歌曲、唱鸭官网地址"],
+    ["用户社区・第三方","<a class=\"ext\" href=\"https://openi.cn/sites/122533.html\">OpenI：唱鸭</a>・<a class=\"ext\" href=\"https://maomu.com/p/www-singduck-cn\">猫目：唱鸭</a>","免费使用、创作点数获取方式与 1:10 充值比例"]
+  ]},
+  {p:"智谱、商汤与字节（补充核验）", items:[
+    ["官方定价","<a class=\"ext\" href=\"https://bigmodel.cn/pricing\">智谱 BigModel 平台定价</a>","产品线聚焦文本与多模态，无音乐生成条目"],
+    ["官方商店","<a class=\"ext\" href=\"https://apps.apple.com/cn/app/id6497651310?l=en-GB\">App Store Muse AI 订阅说明</a>","普通会员 38 元/月、尊享会员 68 元/月"],
+    ["官方平台","<a class=\"ext\" href=\"https://docs.senseaudio.cn/\">SenseAudio 开放平台介绍</a>","商汤音乐生成能力存在性"],
+    ["官方文档","<a class=\"ext\" href=\"https://docs.senseaudio.cn/guides/account/model-list-billing\">模型列表与计费说明</a>","SenseAudio-Music-2.0 为 1 元/首、优惠后 0.5 元/首"],
+    ["官方文档","<a class=\"ext\" href=\"https://docs.senseaudio.cn/guides/token-plan/overview\">Token Plan 概览</a>・<a class=\"ext\" href=\"https://senseaudio.cn/tokenplan\">SenseAudio Token Plan</a>","模型 ID、音效 0.08 元/组、Max 版 699 元/月、最长 6 分钟"],
+    ["官方文档","<a class=\"ext\" href=\"https://docs.coze.cn/coze_pro_plugin_fee\">扣子插件费用说明</a>","Doubao-音乐生成 V2 的 120 秒累计免费额度与 0.002 元/秒单价"]
+  ]}
+];
+
+const TODOS = [
+  ["音潮","官方免费积分规则的完整口径（社区实测为每日约 20 积分、约 5 积分一首），官方页面未公示。"],
+  ["音潮","开放平台 API 报价（歌曲 0.22 元/首、歌词 0.07 元/次）仅见搜狐号文章，该渠道带推广性质，未经官方页面二次确认。"],
+  ["HappyShrimp","正式订阅定价与免费积分额度均未公布（beta 期）。"],
+  ["通义 Fun-Music","百炼平台的按量计费单价未在公开文档列出，需登录控制台查看。"],
+  ["网易天音","免费积分规则存在“每日登录 5 积分、做歌约 3 积分”与“新用户赠 25 积分”两种社区口径；是否设付费订阅或高级音色，官方与第三方说法不一致。"],
+  ["MiniMax","国内现行人民币订阅价（历史口径 36 元/月）与音乐 API 是否恢复、开源 MiniMax Music 3 的许可与商用条款，本轮未取得官方公告链接。"],
+  ["妙音 AI 音乐","运营主体公司未公示；注册赠送积分的具体数量未在官方定价页列出。"],
+  ["唱鸭 AI","运营主体存在“趣丸科技”与“唱吧”两种历史说法，本轮仅取得趣丸集团公告一方证据；国内会员价格未公示。"],
+  ["Muse AI","主体公司名称、与智谱合作关系的当前状态，未取得官方页面确认。"],
+  ["妙响","驱动模型名称（第三方称 Sway v5.5，官方未披露）与“每日 20 次”上限的官方口径。"],
+  ["海绵音乐","生成内容版权归属：36 氪称“共同享有、需平台授权”，太平洋科技称“授予完整商用权”，两方口径冲突，官方页面未明确。"],
+  ["可灵 / 快手","是否存在独立音乐生成接口及其定价，快手 StreamLake B 端能力的公开报价未检索到。"],
+  ["百川智能","未见音乐生成产品，亦未见官方否定性说明，保留“待确认”。"],
+  ["科大讯飞","是否存在 AI 写歌产品；第三方渠道出现的 1499 元/月、2999 元/月报价未在官方页面核实。"],
+  ["MELO 音乐","“中文咬字精度 97.8%”与“最长 8 分钟”来自第三方导航站的横评数据，原始测量方法未公开。"],
+  ["ACE-Step","XL Turbo 单次生成的时长上限（约 30 秒级）与长曲扩展方案的官方说明；“质量超越多数商业模型”为项目自述口径，缺少独立第三方复现。"],
+  ["网易与 ACE-Step","未发现任何官方关联证据，判为误传；若存在底座授权关系，需厂商另行说明。"],
+  ["阿里其他音乐模型","Qwen-Music、WanSong v1.0 等仅为技术报告形态，是否产品化及其定价待确认。"]
+];
+
+/* ================= 渲染：总表 ================= */
+const tableEl = document.getElementById('mainTable');
+PRODUCTS.forEach(function(p){
+  const availTag = p.avail === 'free'
+    ? '<span class="tag free">可免费使用</span>'
+    : (p.avail === 'paid' ? '<span class="tag paid">付费或仅 API</span>' : '<span class="tag">无此能力</span>');
+  const scoreHtml = (p.score === null)
+    ? '<span class="score na">—</span>'
+    : '<span class="score">' + p.score.toFixed(1) + '</span>';
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td data-label="产品 / 开发方"><span class="pname">' + p.name + '</span><span class="dev">' + p.dev + '</span><span style="display:block;margin-top:6px">' + availTag + '</span></td>' +
+    '<td data-label="评分">' + scoreHtml + '</td>' +
+    '<td data-label="官方入口"><a class="ext" href="' + p.site.url + '">' + p.site.label + '</a></td>' +
+    '<td data-label="免费额度">' + p.free + '</td>' +
+    '<td data-label="价格（人民币）">' + p.price + '</td>' +
+    '<td data-label="特点与局限">' + p.note + '</td>';
+  tableEl.appendChild(tr);
+});
+document.getElementById('tableCaption').textContent =
+  '注：评分为主观共识评分（满分 10），非厂商官方指标。价格与免费额度均以 2026-10-07 公开信息为准；标注“待确认”表示本轮未取得可靠官方口径。';
+
+/* ================= 渲染：信源索引 ================= */
+const srcEl = document.getElementById('sourceIndex');
+SOURCES.forEach(function(g){
+  var h = document.createElement('div');
+  h.className = 'srcgrp';
+  var rows = g.items.map(function(it){
+    var link = /^https?:/.test(it[1]) ? '<a class="ext" href="' + it[1] + '">' + it[1] + '</a>' : it[1];
+    link = link.replace(/・/g, '<br>');
+    return '<li class="srcitem">' +
+           '<span class="srclabel">' + it[0] + '</span>' +
+           '<span class="srcbody">' + link +
+           '<span class="srcfield">支撑字段：' + it[2] + '</span></span></li>';
+  }).join('');
+  h.innerHTML = '<h3>' + g.p + '</h3><ul class="srclist">' + rows + '</ul>';
+  srcEl.appendChild(h);
+});
+
+/* ================= 渲染：待确认 ================= */
+const todoEl = document.getElementById('todoList');
+TODOS.forEach(function(t, i){
+  var d = document.createElement('div');
+  d.className = 't';
+  d.innerHTML = '<div class="n">' + (i + 1) + '</div><div class="c"><b>' + t[0] + '：</b>' + t[1] + '</div>';
+  todoEl.appendChild(d);
+});
+
+/* ================= ECharts ================= */
+var C = {primary:'#12564C', accent:'#C4762A', ink:'#1F2329', ink2:'#646A73', ink3:'#8A939B', line:'#DEE3E8'};
+var FONT = '"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif';
+
+function renderScore(){
+  var el = document.getElementById('chartScore');
+  if(!el || typeof echarts === 'undefined') return;
+  var data = PRODUCTS.filter(function(p){return p.score !== null;})
+                     .slice().sort(function(a,b){return a.score - b.score;});
+  var chart = echarts.init(el);
+  chart.setOption({
+    grid:{left:8, right:64, top:18, bottom:34, containLabel:true},
+    tooltip:{
+      trigger:'axis', axisPointer:{type:'shadow'},
+      backgroundColor:'#fff', borderColor:C.line, borderWidth:1,
+      textStyle:{color:C.ink, fontFamily:FONT, fontSize:14},
+      formatter:function(ps){
+        var i = ps[0].dataIndex, p = data[i];
+        return '<b>' + p.name + '</b><br/>综合评分：' + p.score.toFixed(1) + ' / 10<br/>开发者：' + p.dev;
+      }
+    },
+    xAxis:{
+      type:'value', min:0, max:10, splitNumber:5,
+      axisLine:{show:false}, axisTick:{show:false},
+      splitLine:{lineStyle:{color:'#EDF1F4'}},
+      axisLabel:{color:C.ink3, fontFamily:FONT, fontSize:13}
+    },
+    yAxis:{
+      type:'category',
+      data:data.map(function(p){return p.name;}),
+      axisLine:{show:false}, axisTick:{show:false},
+      axisLabel:{color:C.ink, fontFamily:FONT, fontSize:13.5}
+    },
+    series:[{
+      type:'bar', barWidth:'58%',
+      data:data.map(function(p){
+        return {
+          value:p.score,
+          itemStyle:{color:(p.avail === 'free') ? C.primary : C.accent, borderRadius:[0,3,3,0]}
+        };
+      }),
+      label:{
+        show:true, position:'right', fontFamily:FONT, fontSize:13.5,
+        fontWeight:'bold', color:C.ink, formatter:function(ps){return ps.value.toFixed(1);}
+      }
+    }]
+  });
+  window.addEventListener('resize', function(){chart.resize();});
+}
+
+function renderPrice(){
+  var el = document.getElementById('chartPrice');
+  if(!el || typeof echarts === 'undefined') return;
+  var pts = [
+    {name:'妙响 MUSE SONG', x:0,  y:7.8, free:true,  lp:'top'},
+    {name:'ACE-Step 1.5 XL', x:0,  y:7.8, free:true,  lp:'bottom'},
+    {name:'网易天音',        x:0,  y:7.5, free:true,  lp:'right'},
+    {name:'海绵音乐',        x:0,  y:7.3, free:true,  lp:'right'},
+    {name:'音潮 V4.0',       x:38, y:8.3, free:false, lp:'right'},
+    {name:'MELO 音乐',       x:38, y:8.4, free:false, lp:'top'},
+    {name:'妙音 AI 音乐',    x:39, y:7.3, free:false, lp:'right'},
+    {name:'Mureka V9.5',     x:88, y:8.3, free:false, lp:'left'}
+  ];
+  var chart = echarts.init(el);
+  chart.setOption({
+    grid:{left:8, right:40, top:26, bottom:56, containLabel:true},
+    tooltip:{
+      trigger:'item',
+      backgroundColor:'#fff', borderColor:C.line, borderWidth:1,
+      textStyle:{color:C.ink, fontFamily:FONT, fontSize:14},
+      formatter:function(ps){
+        var d = ps.data, v = d.value;
+        return '<b>' + d.name + '</b><br/>最低付费月费：' + (v[0] === 0 ? '0（完全免费）' : '¥' + v[0] + '/月') +
+               '<br/>综合评分：' + v[1].toFixed(1);
+      }
+    },
+    xAxis:{
+      type:'value', min:-8, max:100,
+      axisLine:{lineStyle:{color:C.line}}, axisTick:{show:false},
+      splitLine:{lineStyle:{color:'#EDF1F4'}},
+      axisLabel:{color:C.ink3, fontFamily:FONT, fontSize:13, formatter:'{value}'},
+      name:'最低付费月费（元）', nameLocation:'middle', nameGap:34,
+      nameTextStyle:{color:C.ink2, fontFamily:FONT, fontSize:13}
+    },
+    yAxis:{
+      type:'value', min:6.8, max:8.9, splitNumber:4,
+      axisLine:{show:false}, axisTick:{show:false},
+      splitLine:{lineStyle:{color:'#EDF1F4'}},
+      axisLabel:{color:C.ink3, fontFamily:FONT, fontSize:13},
+      name:'综合评分', nameTextStyle:{color:C.ink2, fontFamily:FONT, fontSize:13}
+    },
+    series:[{
+      type:'scatter',
+      symbolSize:16,
+      data:pts.map(function(p){
+        return {
+          name:p.name,
+          value:[p.x, p.y],
+          free:p.free,
+          label:{position:p.lp, distance:10}
+        };
+      }),
+      itemStyle:{
+        color:function(ps){return ps.data.free ? C.primary : C.accent;},
+        borderColor:'#fff', borderWidth:1.5
+      },
+      label:{
+        show:true, fontFamily:FONT, fontSize:12.5, color:C.ink,
+        formatter:function(ps){return ps.data.name;}
+      },
+      markLine:{
+        silent:true, symbol:'none',
+        lineStyle:{color:C.primary, type:'dashed', width:1, opacity:.55},
+        label:{show:true, position:'insideEndTop', fontFamily:FONT, fontSize:12, color:C.primary,
+               formatter:'完全免费区'},
+        data:[{xAxis:0}]
+      }
+    }]
+  });
+  window.addEventListener('resize', function(){chart.resize();});
+}
+
+renderScore();
+renderPrice();
+</script>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>海外 AI 音乐 / 歌声合成产品调研（2026-10）</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231D5B55'/%3E%3Cpath d='M8 20V12M12 23V9M16 18V14M20 24V8M24 20V12' stroke='%23F5F6F4' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js" defer></script>
+<style>
+:root{
+  --paper:#F5F6F4; --white:#FFFFFF; --ink:#16191B; --ink2:#5C6663; --ink3:#8A9390;
+  --line:#DBE0DC; --line2:#EDF0EE; --main:#1D5B55; --main-l:#7FB3AC; --main-xl:#E4EDEB;
+  --accent:#B8561C; --accent-xl:#F7E9DF;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.72;font-weight:400;
+  font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+h1,h2,h3,h4{font-family:"Noto Serif SC","Songti SC",Georgia,serif;font-weight:700;letter-spacing:-.01em;margin:0}
+a{color:var(--main);text-decoration:none;border-bottom:1px solid rgba(29,91,85,.28);word-break:break-all}
+a:hover{border-bottom-color:var(--main)}
+
+/* ---------- masthead ---------- */
+.mast{background:var(--white);border-bottom:1px solid var(--line);padding:54px 0 40px}
+.kicker{display:flex;align-items:center;gap:10px;font-size:12.5px;letter-spacing:.14em;color:var(--ink3);margin-bottom:20px}
+.kicker .bar{width:34px;height:2px;background:var(--accent)}
+h1{font-size:clamp(27px,4.3vw,44px);line-height:1.2}
+.mast .lede{margin:20px 0 0;max-width:76ch;font-size:16.5px;color:var(--ink2);font-weight:300}
+.mast .lede b{color:var(--ink);font-weight:500}
+.metagrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:34px}
+.metagrid div{background:var(--white);padding:13px 16px}
+.metagrid dt{font-size:11.5px;letter-spacing:.1em;color:var(--ink3);margin-bottom:3px}
+.metagrid dd{margin:0;font-size:13.5px;font-weight:500}
+
+/* ---------- sections ---------- */
+section{padding:52px 0 0}
+.shead{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:11px;margin-bottom:28px}
+.shead .num{font-family:"Noto Serif SC",serif;font-size:12.5px;color:var(--accent);letter-spacing:.1em;font-weight:700;padding-top:6px}
+h2{font-size:clamp(20px,2.5vw,25px)}
+.sub{color:var(--ink2);font-size:14px;margin:0 0 26px;max-width:80ch;font-weight:300}
+
+/* ---------- kpi ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px}
+.kpi{background:var(--white);border:1px solid var(--line);padding:18px 18px 16px}
+.kpi .v{font-family:"Noto Serif SC",serif;font-size:33px;font-weight:900;line-height:1;color:var(--main)}
+.kpi .v small{font-size:15px;font-weight:700;margin-left:3px}
+.kpi .k{font-size:13px;font-weight:500;margin-top:9px}
+.kpi .d{font-size:12px;color:var(--ink3);margin-top:3px;line-height:1.5}
+
+/* ---------- charts ---------- */
+.chartcard{background:var(--white);border:1px solid var(--line);padding:20px 18px 12px;margin-bottom:22px}
+.chartcard h3{font-size:16.5px;margin-bottom:5px}
+.chartcard .cnote{font-size:12.5px;color:var(--ink2);margin:0 0 10px;font-weight:300}
+.chart{width:100%}
+.legendtip{font-size:12px;color:var(--ink3);border-top:1px dashed var(--line);padding-top:10px;margin-top:8px}
+.mark{display:inline-block;padding:1px 7px;font-size:11.5px;border-radius:2px;background:var(--main-xl);color:var(--main);font-weight:500}
+.mark.warn{background:var(--accent-xl);color:var(--accent)}
+.mark.void{background:#EEF0EF;color:var(--ink3)}
+
+/* ---------- timeline ---------- */
+.tl{display:grid;grid-template-columns:124px 26px minmax(0,1fr);margin-top:4px}
+.tlrow{display:contents}
+.tlrow .tm{text-align:right;padding:14px 12px 14px 0;font-size:12.5px;letter-spacing:.04em;color:var(--ink3);line-height:1.5}
+.tlrow .ax{position:relative}
+.tlrow .ax::before{content:"";position:absolute;left:calc(50% - 1px);top:0;bottom:0;width:2px;background:var(--line)}
+.tlrow:first-child .ax::before{top:22px}
+.tlrow:last-child .ax::before{bottom:auto;height:22px}
+.tlrow .ax i{position:absolute;left:50%;transform:translateX(-50%);top:15px;width:14px;height:14px;border-radius:50%;background:var(--white);border:3px solid var(--main);z-index:1}
+.tlrow.acc .ax i{border-color:var(--accent)}
+.tlrow .ct{padding:14px 0 14px 14px}
+.tlrow .ct .ev{font-weight:500;font-size:14px;line-height:1.5}
+.tlrow .ct .note{font-size:12.5px;color:var(--ink2);font-weight:300;margin-top:4px;line-height:1.58}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);background:var(--white)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;table-layout:fixed}
+th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line2);vertical-align:top}
+thead th{background:#EFF2F0;font-weight:500;font-size:12.5px;color:var(--ink2);white-space:nowrap;border-bottom:1px solid var(--line)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FAFBFA}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.score{font-family:"Noto Serif SC",serif;font-weight:900;font-size:16px;color:var(--main)}
+.score.na{color:var(--ink3);font-size:13px;font-weight:500;font-family:"Noto Sans SC",sans-serif}
+
+/* ---------- records ---------- */
+.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:18px}
+.rec{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--main);padding:20px 20px 18px}
+.rec.stop{border-top-color:var(--ink3)}
+.rec.na{border-top-color:var(--line)}
+.rec header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:4px}
+.rec h3{font-size:17px;line-height:1.35}
+.rec .dev{font-size:12.5px;color:var(--ink3);margin:3px 0 0;font-weight:300}
+.badge{flex:none;font-size:11.5px;padding:3px 9px;border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.badge.g{background:var(--main-xl);border-color:var(--main-xl);color:var(--main)}
+.badge.r{background:var(--accent-xl);border-color:var(--accent-xl);color:var(--accent)}
+.fields{margin:16px 0 0;display:grid;gap:0}
+.f{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:9px 0;border-top:1px solid var(--line2)}
+.f dt{font-size:12.5px;color:var(--ink3);font-weight:500}
+.f dd{margin:0;font-size:13.5px;line-height:1.65}
+.f dd ul{margin:6px 0 0;padding-left:16px}
+.f dd li{margin-bottom:3px;font-size:13px;color:var(--ink2)}
+.basis{font-size:12.5px;color:var(--ink2);background:#F8FAF9;border-left:2px solid var(--main-l);padding:9px 12px;margin-top:4px;font-weight:300;line-height:1.62}
+.src{margin-top:14px;border-top:1px solid var(--line);padding-top:11px}
+.src .st{font-size:11.5px;letter-spacing:.08em;color:var(--ink3);margin-bottom:7px}
+.src ol{margin:0;padding-left:17px}
+.src li{font-size:12px;margin-bottom:5px;line-height:1.6;color:var(--ink2)}
+.src li b{color:var(--ink);font-weight:500}
+
+/* ---------- misc ---------- */
+.panel{background:var(--white);border:1px solid var(--line);border-left:3px solid var(--accent);padding:18px 20px;margin-bottom:14px}
+.panel h3{font-size:15.5px;margin-bottom:4px}
+.panel p{margin:0;font-size:13.5px;color:var(--ink2);font-weight:300}
+.panel .ref{font-size:12px;color:var(--ink3);margin-top:8px}
+footer{margin:60px 0 0;padding:26px 0 60px;border-top:1px solid var(--line);color:var(--ink3);font-size:12.5px;line-height:1.7}
+@media (max-width:720px){
+  html,body{max-width:100%;overflow-x:hidden}
+  canvas,img,svg{max-width:100%}
+  .recs{grid-template-columns:1fr}
+  .f{grid-template-columns:1fr;gap:2px;padding:10px 0}
+  .mast{padding:38px 0 30px}
+  section{padding:38px 0 0}
+  .tablewrap{font-size:12.5px}
+  th,td{padding:9px 10px}
+  .tl{grid-template-columns:78px 22px minmax(0,1fr)}
+  .tlrow .tm{font-size:11.5px;padding-right:8px}
+  .tlrow .ct{padding-left:10px}
+  body{font-size:15px}
+  .kpi .d{font-size:12.5px}
+  .cnote,.legendtip{font-size:13px}
+  .src li{font-size:12.5px;line-height:1.7}
+  /* 窄屏放不下多列表格：整行折成卡片，字段名与值上下排 */
+  .tw-cards{overflow:visible;border:none;background:transparent;font-size:14px}
+  table.cards{display:block;table-layout:auto}
+  table.cards colgroup,table.cards thead{display:none}
+  table.cards tbody{display:block}
+  table.cards tr{display:block;background:var(--white);border:1px solid var(--line);border-top:2px solid var(--main);padding:12px 14px;margin-bottom:12px}
+  table.cards td{display:grid;grid-template-columns:80px minmax(0,1fr);gap:10px;border:none;padding:4px 0;text-align:left}
+  table.cards td::before{content:attr(data-label);font-size:12px;color:var(--ink3);line-height:1.7}
+  table.cards td.num{text-align:left;white-space:normal}
+}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="kicker"><span class="bar"></span>海外产品调研 · 结构化字段 + 三类信源交叉验证</div>
+    <h1>海外 AI 音乐与歌声合成产品调研</h1>
+    <p class="lede">逐条核验 <b>22 个海外产品</b>（20 个在营 + 1 个已停服 + 1 个经核验不具备生成能力）的官方定价页、科技媒体评测与用户社区三类信源。官方域名与定价页均已实际访问；无法落到官方页面的数字一律标注为待确认，不做推测填充。评分是<b>综合媒体评测与用户口碑的主观共识分值</b>，不是厂商指标或客观测量值。</p>
+    <dl class="metagrid">
+      <div><dt>信息获取时间</dt><dd>2026-10-07（Asia/Shanghai）</dd></div>
+      <div><dt>价格口径</dt><dd>USD 为主，按 1 USD ≈ 7.1 CNY 折算</dd></div>
+      <div><dt>纳入范围</dt><dd>确有音乐生成或歌声合成能力的海外产品</dd></div>
+      <div><dt>信源类型</dt><dd>官方定价页 / 科技媒体 / 用户社区</dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="overview">
+  <div class="shead"><span class="num">01</span><h2>先看结论</h2></div>
+  <div class="kpis">
+    <div class="kpi"><div class="v">20</div><div class="k">纳入核验的在营产品</div><div class="d">另有 1 个已停服（Amper Music）、2 个经核验不具备生成能力被排除</div></div>
+    <div class="kpi"><div class="v">9.0<small>/10</small></div><div class="k">当前最高分：Synthesizer V</div><div class="d">声音自然度与演唱表现力的社区共识第一</div></div>
+    <div class="kpi"><div class="v">14</div><div class="k">提供免费额度的产品</div><div class="d">其中 1 个为一次性试用额度，其余按月刷新；仅 3 个产品完全无免费入口</div></div>
+    <div class="kpi"><div class="v">3</div><div class="k">发生更名 / 收购的产品</div><div class="d">Riffusion→Google Flow Music、Sonauto→Treblo、Amper→Shutterstock</div></div>
+    <div class="kpi"><div class="v">14</div><div class="k">无法完全核实的字段</div><div class="d">官方页面死链或同一站点多套价格口径</div></div>
+  </div>
+  <p class="sub" style="margin-top:24px">三条主线值得注意：<b>歌声合成与整曲生成是两条不同的赛道</b>——前者（Synthesizer V、ACE Studio、VOCALOID）卖的是创作控制权与自然度，后者（Suno、Udio、ElevenLabs）卖的是从提示词直接出成品；<b>免费额度的重心正在转移</b>，曾经的免费之王 Riffusion 被 Google 收购后免费层已收缩，而 Treblo 与 Klangio 之外的多数产品把商用授权锁在付费档；<b>版权是最大的变量</b>，Suno 在 2026 年 7 月遭遇慕尼黑法院不利判决并面临新诉讼，Udio 则通过和解拿到了最清晰的授权路径。</p>
+</section>
+
+<section id="charts">
+  <div class="shead"><span class="num">02</span><h2>横向对比</h2></div>
+  <p class="sub">四张图分别回答：谁的分最高、门槛价差多大、产品能力结构如何、行业格局在过去一年怎么变。所有数值均取自第 04 节的产品记录，口径一致。</p>
+
+  <div class="chartcard">
+    <h3>评分排序：歌声合成类整体领先，整曲生成类紧随</h3>
+    <p class="cnote">满分 10 分，主观共识评分（科技媒体评测 + 用户社区口碑）。按歌声合成 / 整曲生成 / 器乐配乐 / 音色转换四类着色，同类内按评分从高到低排列。已停服的 Amper Music 与不生成的 Output 无评分，不列入本图。</p>
+    <div id="c-score" class="chart" style="height:640px"></div>
+    <div class="legendtip">评分依据见第 04 节各产品记录中的「评分依据」字段；<span class="mark warn">已停服</span>与<span class="mark void">不适用</span>的产品不计入排序。</div>
+  </div>
+
+  <div class="chartcard">
+    <h3>付费档位区间：门槛最低 $3/月，最高档 $299/月</h3>
+    <p class="cnote">横条表示该产品从最低付费档到最高档的月付价区间（USD）。一次性买断的 Synthesizer V、VOCALOID 与按欧元定价的 AIVA 未纳入本图。</p>
+    <div id="c-price" class="chart" style="height:640px"></div>
+    <div class="legendtip">整曲生成类的入门档集中在 $6–$10；器乐/配乐类的价格带最长，Stable Audio 与 Mubert 的顶档都到 $199/月，ElevenLabs Music 的 Scale 档则到 $299/月。</div>
+  </div>
+
+  <div class="chartcard">
+    <h3>能力结构：四类产品的分布极不均衡</h3>
+    <p class="cnote">按产品实际能力归入四类，一个产品只归一类。</p>
+    <div id="c-cat" class="chart" style="height:340px"></div>
+  </div>
+
+  <div class="chartcard">
+    <h3>格局变动：过去一年三起更名 / 收购</h3>
+    <p class="cnote">纳入产品的归属与品牌变更时间线（2020–2026）。</p>
+    <div class="tl">
+      <div class="tlrow"><div class="tm">2020</div><div class="ax"><i></i></div><div class="ct"><div class="ev">Amper Music 被 Shutterstock 收购</div><div class="note">独立平台关停，技术并入 Shutterstock Music；至今无独立入口</div></div></div>
+      <div class="tlrow"><div class="tm">2025-08</div><div class="ax"><i></i></div><div class="ct"><div class="ev">Riffusion 更名 Producer.ai</div><div class="note">从开源模型项目转向消费级创作平台，团队来自原 Riffusion</div></div></div>
+      <div class="tlrow acc"><div class="tm">2026-02-24</div><div class="ax"><i></i></div><div class="ct"><div class="ev">Google 收购 Producer.ai</div><div class="note">团队并入 Google Labs 与 Google DeepMind，与 Lyria 3 打通</div></div></div>
+      <div class="tlrow"><div class="tm">2026-04</div><div class="ax"><i></i></div><div class="ct"><div class="ev">以 Google Flow Music 名义运营</div><div class="note">riffusion.com 跳转至新定价页；原免费层与 Pro/Studio 套餐作废</div></div></div>
+      <div class="tlrow acc"><div class="tm">2026-06-03</div><div class="ax"><i></i></div><div class="ct"><div class="ev">Sonauto 更名 Treblo</div><div class="note">官方称原名难以拼读；账号与歌曲库迁移，旧域名仍跳转</div></div></div>
+      <div class="tlrow"><div class="tm">2026-09</div><div class="ax"><i></i></div><div class="ct"><div class="ev">Suno v6 引发退订潮</div><div class="note">社区投诉音质发闷、人声被埋；同期面临慕尼黑法院不利判决与新诉讼</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="matrix">
+  <div class="shead"><span class="num">03</span><h2>总览表</h2></div>
+  <p class="sub">横向扫读用；每个产品的完整字段与逐条信源见第 04 节。</p>
+  <div class="tablewrap tw-cards">
+    <table class="cards">
+      <colgroup><col style="width:18%"><col style="width:14%"><col style="width:7%"><col style="width:10%"><col style="width:28%"><col style="width:23%"></colgroup>
+      <thead><tr><th>产品</th><th>开发方</th><th class="num">评分</th><th>免费额度</th><th class="num">最低付费档</th><th>现状</th></tr></thead>
+      <tbody id="matrixBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- records -->
+<section id="records">
+  <div class="shead"><span class="num">04</span><h2>产品记录与信源</h2></div>
+  <p class="sub">每个产品给出完整字段数据、评分依据，以及逐条标注「该 URL 支撑哪个字段」的信源清单。</p>
+  <div class="recs" id="recs"></div>
+</section>
+
+<section id="excluded">
+  <div class="shead"><span class="num">05</span><h2>已核验但排除的产品</h2></div>
+  <p class="sub">按任务给定的纳入标准（必须确有音乐生成或歌声合成能力）逐条核验后排除，并说明理由。</p>
+  <div id="excludedBox"></div>
+</section>
+
+<section id="unverified">
+  <div class="shead"><span class="num">06</span><h2>无法核实 / 待确认清单</h2></div>
+  <p class="sub">下列字段均未能在官方页面完成二次确认，报告中相应数字已就地标注为待确认，不作为结论使用。</p>
+  <div id="unverifiedBox"></div>
+</section>
+
+<footer>
+  <p>数据采集与核验时间：2026-10-07（Asia/Shanghai）。汇率按 1 USD ≈ 7.1 CNY 估算，换算值仅供量级参考，实际以支付时点汇率为准。</p>
+  <p>评分为综合权威科技媒体评测与用户社区口碑的主观共识分值，非官方指标、非客观测量值；同一产品在不同评测样本下可能相差 0.5 分以上。价格与套餐随时可能调整，商用前请以各产品官方定价页当前展示为准。</p>
+</footer>
+</div>
+
+<script>
+/* ===== 数据（来源：2026-10-07 采集，逐条见各产品 sources 字段） ===== */
+var PAL = { main:'#1D5B55', mainL:'#8FBDB7', accent:'#B8561C', accentL:'#DDA172', muted:'#B9C2BF' };
+
+var PRODUCTS = [
+{ n:'Synthesizer V Studio 2 Pro', dev:'Dreamtonics（日本东京）', cat:'歌声合成', group:'vocal', score:9.0,
+  site:'https://dreamtonics.com/', siteP:'https://store.dreamtonics.com/product/synthesizer-v-studio-2-pro/',
+  free:'有免费版：Studio 2 Core 激活后 7 天试用 Liam / Mai / Mo Xu，7 天后任选其一永久免费保留；另有旧版免费的 Studio Basic（限 v1 声库）。Pro 提供 14 天全功能试用与 7 天全额退款。',
+  price:'$99 一次性终身授权（含 1 支免费声库）；Core→Pro 升级 $79；Pro + 1 支自选声库套装 $149；单支额外声库约 $79–99.99',
+  cny:'$99 ≈ ¥702.9；$79 ≈ ¥560.9；$149 ≈ ¥1057.9',
+  basis:'AI Market Cap 称其为「同类中最接近真人的人声、可做音素级控制」；Audiofanzine、Beat Magazine、Music Teacher Magazine 均给出正面评测；Dreamtonics 官方论坛与 VI-Control 社区共识为真实性无人能及。维度：声音自然度 9.4 / 演唱表现力 9.2 / 歌曲制作能力 8.2。',
+  one:'行业公认自然度最高的歌声合成软件，盲听测试中常难与真人录音区分，音素级控制与 AI Retake 是独家能力；局限是它本质是「人声乐器」，编曲制作仍需自备 DAW，多角色要靠 $79–99 一支的声库堆叠，Studio 2 还取消了 Linux 支持。',
+  status:'正常运营', st:'g',
+  src:[['https://dreamtonics.com/','官方站点与产品定位；媒体评测汇总入口'],['https://store.dreamtonics.com/product/synthesizer-v-studio-2-pro/','官方定价 $99、14 天试用、7 天退款、含 1 支免费声库、声库语言与系统要求'],['https://dreamtonics.com/sv-core','免费版 Core 的 7 天试用与免费保留声库口径'],['https://store.dreamtonics.com/product/synthesizer-v-studio-2-upgrade-from-core-to-pro/','Core→Pro 升级价 $79'],['https://store.dreamtonics.com/','单支声库价格（REMMANT $79、Riku 2 $99.99）'],['https://www.native-instruments.com/products/synthesizer-v-studio-2-pro','第三方渠道套装 $225 与 2 支声库构成'],['https://aimarketcap.io/top/ai-vocaloid-song-generators/','音质共识、音素级控制、Linux 支持取消、声库单价评价'],['https://www.kvraudio.com/forum/viewtopic.php?t=626750','用户社区对比 Synthesizer V 与 ACE Studio'],['https://www.vi-control.net/community/threads/synthesizer-v-studio-2.160492/page-20','用户社区音质对比讨论']] },
+
+{ n:'ACE Studio（Artist / Artist Pro）', dev:'TimeDomain 时域科技（中国北京，国际站 acestudio.ai）', cat:'歌声合成', group:'vocal', score:8.2,
+  site:'https://acestudio.ai/', siteP:'https://acestudio.ai/pricing/',
+  free:'无长期免费版；注册用户每月获 100 AI Credits（每月 1 日按太平洋时间刷新，上月未用清零），仅够体验生成式功能。',
+  price:'Artist $20.73/月（限时 20% OFF 后 $16.58，年付、租满 2 年转永久授权）；Artist Pro $27.5/月（折后 $22）；终身授权 Artist $398、Artist Pro $528',
+  cny:'$16.58 ≈ ¥117.7；$20.73 ≈ ¥147.2；$22 ≈ ¥156.2；$27.5 ≈ ¥195.3；$398 ≈ ¥2825.8；$528 ≈ ¥3748.8；中国站 Artist ¥148/月（新人 20% OFF 后 ¥83.17/月）',
+  basis:'综合 audiofu 4.3/5（=8.6）、TechVernia 评测（易用性与声库数量优于 Synthesizer V）、KVR Audio 与 VI-Control 论坛共识（女声与歌剧声线出色、男性声线偏弱、合唱功能不如 Synthesizer V）。维度：声音自然度 8.3 / 演唱表现力 7.8 / 歌曲制作能力 8.5。',
+  one:'一站式 AI 歌声工作台，MIDI 加歌词直接出成品人声，160+ 免版税 AI 歌手、8 种语言、AI 乐器、声音克隆与变声齐备，租两年转永久授权；局限是男性声线偏弱、合唱功能口碑一般，且生成式功能依赖持续订阅。',
+  status:'正常运营', st:'g',
+  src:[['https://acestudio.ai/pricing/','官方定价：Artist $16.58/$20.73、Artist Pro $22/$27.5、rent-to-own 规则'],['https://acestudio.cn/pricing','中国站定价 ¥148/月、20% OFF 后 ¥83.17/月'],['https://support.acestudio.ai/article/147-ace-studio-ai-credit','免费额度口径：注册用户每月 100 credits、Artist 2500、Artist Pro 5000'],['https://acestudio.ai/blog/introduce-video-composer/','终身授权价格 $398 / $528 与声库数量'],['https://techvernia.com/pages/reviews/audio/synthesizer-v.html','与 Synthesizer V 的对比评测'],['https://audiofu.com/best/vst-vocal-synth','编辑评分 4.3/5'],['https://laptops251.com/8-best-ai-singing-voice-generators-for-laptop-users-in-2026/','套餐额度与 credit 分配'],['https://www.vi-control.net/community/threads/synthesizer-v-studio-2.160492/page-20','社区对男女声线表现的评价']] },
+
+{ n:'VOCALOID 6', dev:'Yamaha Corporation（日本）', cat:'歌声合成', group:'vocal', score:8.0,
+  site:'https://www.vocaloid.com/', siteP:'https://www.vocaloid.com/en/products',
+  free:'无免费版；仅在购买编辑器（Starter Pack / Editor Set）后获得配套声库。第三方提及的 Lite Editor 仍未确认免费口径。',
+  price:'VOCALOID6 编辑器（含 25 个声库）$225；声库包 $162；Starter Pack $198；VOCALOID:AI 单支声库 $99–311',
+  cny:'$225 ≈ ¥1597.5；$162 ≈ ¥1150.2；$198 ≈ ¥1405.8；$99 ≈ ¥702.9；$311 ≈ ¥2208.1',
+  basis:'生态规模与历史地位第一（V3/V4/V5 旧声库可沿用），但 2026 年多份横评（AI Market Cap、LinkstartAI）均认为其自然度已被 Synthesizer V 与 ACE Studio 超越。维度：声音自然度 7.6 / 演唱表现力 7.8 / 歌曲制作能力 8.8。',
+  one:'虚拟歌手生态的开创者与最大存量池，旧声库可继续沿用、插件标准齐全（VST3/AU/ARA2），是日本音乐制作的事实标准；局限是自然度已被后两者反超，编辑器 $225 起且每支新声库还要 $99–311。',
+  status:'正常运营', st:'g',
+  src:[['https://www.vocaloid.com/en/products','官方商品列表：Starter Pack $198、单支声库 $99–311'],['https://www.vocaloid.com/en/products/show/v6vb_voicebanks_en','声库包 $162'],['https://d2d1pbdkm53nop.cloudfront.net/en/vocaloid6/buy/','VOCALOID6 编辑器 $225、含 25 个声库、插件标准'],['https://www.vocaloid.com/en/products/show/v6vb_zola2_en','单支 VOCALOID:AI 声库定价示例 $99'],['https://www.linkstartai.com/en/agents/ace-studio','与 ACE Studio、Synthesizer V 的三方能力对比'],['https://aimarketcap.io/top/ai-vocaloid-song-generators/','同类横评中的定位与自然度评价']] },
+
+{ n:'Suno', dev:'Suno AI（美国）', cat:'整曲生成', group:'song', score:8.4,
+  site:'https://suno.com/', siteP:'https://suno.com/pricing',
+  free:'有免费层：每天 50 credits（约 10 首短曲，每日清零不累积），不可商用、无下载权限。',
+  price:'Pro $10/月（年付 $8/月，$96/年，2500 credits/月）；Premier $30/月（年付 $24/月，$288/年，10000 credits/月）',
+  cny:'$8 ≈ ¥56.8；$10 ≈ ¥71.0；$24 ≈ ¥170.4；$30 ≈ ¥213.0',
+  basis:'Artifactr 盲测小组评分 8.5/10（2026 年最高）；MixMasterAI 称其跨流派人声一致性最好。但 2026 年 9 月 v6 上线后 Reddit r/SunoAI 出现大规模音质投诉与退订潮，多家媒体报道。综合取 8.4。维度：音乐质量 8.5 / 人声质感 8.6 / 风格多样性 9.0 / 生成稳定性 8.2 / 时长上限 8.5。',
+  one:'规模最大、生态最完整的 AI 音乐平台，人声与流派覆盖是行业基准；主要风险是 v6 模型口碑崩塌（社区称音质发闷、人声被埋）与版权诉讼——2026 年 7 月 31 日慕尼黑法院作出不利判决，Sony Music 与 Universal 另提起 45 页新诉讼。',
+  status:'正常运营（口碑波动）', st:'r',
+  src:[['https://suno.com/pricing','官方定价页（未直接抓取，仅作官方域名核验）'],['https://aitoolspolice.com/reviews/suno/','Pro $10 / Premier $30、年付 $8/$24、credits 与下载数、商用权限'],['https://www.layer3labs.io/guides/suno-explained','同上价格的第二来源与授权说明'],['https://aisotools.com/pricing/suno','免费层 50 credits/天、年付 20% OFF'],['https://artifactr.net/best-ai-music-generators/','盲测小组评分 8.5/10'],['https://www.gearnews.com/suno-v6-problems-tech/','v6 更新引发用户不满与唱片公司新诉讼（媒体报道）'],['https://routenote.com/blog/suno-v6-user-backlash-copyright-lawsuit/','v6 音质投诉与诉讼进展'],['https://www.mixmasterai.co/best-ai-music-generator-with-vocals','人声质量的横向对比结论'],['https://felloai.com/best-ai-music-generators/','慕尼黑法院 2026-07-31 不利判决']] },
+
+{ n:'Udio', dev:'Uncharted Labs（美国）', cat:'整曲生成', group:'song', score:8.2,
+  site:'https://www.udio.com/', siteP:'https://www.udio.com/pricing',
+  free:'有免费层：每天 10 credits（约 100/月），可生成但不可下载。',
+  price:'Standard $10/月（年付 $8/月，$96/年，2400 credits/月）；Pro $30/月（年付 $24/月，$288/年，6000 credits/月）',
+  cny:'$8 ≈ ¥56.8；$10 ≈ ¥71.0；$24 ≈ ¥170.4；$30 ≈ ¥213.0',
+  basis:'Artifactr 盲测评分 8.4/10；Fello AI 与 Awesome Agents 均称其音频保真度与乐器分离最好；Futuramo 报道其 2025 年已与 UMG 和解。但授权过渡期下载一度暂停，部分流派人声稳定性弱于 Suno。维度：音乐质量 8.5 / 人声质感 8.1 / 风格多样性 8.0 / 生成稳定性 7.8 / 时长上限 8.0。',
+  one:'音频保真度与混音清晰度口碑最好，且版权合规路径最清晰（已与 UMG、Warner、Merlin、Kobalt 达成协议）；局限是免费层无法下载、授权过渡期下载功能曾暂停，人声在部分流派的一致性仍落后 Suno。',
+  status:'正常运营', st:'g',
+  src:[['https://www.udio.com/pricing','官方定价页（未直接抓取，仅作官方域名核验）'],['https://aiwiki.ai/wiki/udio','Standard $10 / Pro $30、年付 $8/$24、credits 与功能差异'],['https://awesomeagents.ai/tools/best-ai-music-generators-2026/','免费层 100 credits（10/天）、档位与功能'],['https://artifactr.net/best-ai-music-generators/','盲测评分 8.4/10'],['https://felloai.com/best-ai-music-generators/','与 UMG / Warner / Merlin / Kobalt 的授权和解'],['https://futuramo.com/blog/how-ai-is-transforming-creative-work/','2025 年与 UMG 和解、商用权利澄清'],['https://www.mixmasterai.co/suno-vs-udio','人声与器乐质量的社区对比结论']] },
+
+{ n:'ElevenLabs Music', dev:'ElevenLabs（英国 / 美国）', cat:'整曲生成', group:'song', score:8.0,
+  site:'https://elevenlabs.io/music', siteP:'https://elevenlabs.io/pricing',
+  free:'有免费层：每月 10,000 credits，可免费创建（非商用、需署名）。',
+  price:'Starter $6/月（30000 credits）；Creator $22/月（121000 credits）；Pro $99/月（600000 credits）；Scale $299/月；API $0.15/分钟',
+  cny:'$6 ≈ ¥42.6；$22 ≈ ¥156.2；$99 ≈ ¥702.9；$299 ≈ ¥2122.9；$0.15 ≈ ¥1.07',
+  basis:'MixMasterAI 称其与 Minimax 的单次录制人声更真实；Rework 评测指出 v2 模型（2026 年 5 月）已大幅缩小与 Suno / Udio 的人声差距。维度：音乐质量 8.0 / 人声质感 8.2 / 风格多样性 7.6 / 生成稳定性 8.0 / 时长上限 7.5。',
+  one:'语音赛道头部厂商把能力延伸到音乐，v2 模型人声真实性接近第一梯队，且与 ElevenLabs 的 TTS / 配音生态打通；局限是音乐线较新、二创生态远小于 Suno，自服务计划在授权条款中限定个人使用。',
+  status:'正常运营', st:'g',
+  src:[['https://elevenlabs.io/pricing','官方定价：各档 credits 与月费'],['https://elevenlabs.io/music','官方音乐产品页与免费层 10k credits'],['https://elevenlabs.io/pricing/api','API 音乐生成 $0.15/分钟与自服务档位分钟数'],['https://elevenlabs.io/eleven-music-model-specific-terms','自服务计划为个人使用、企业另议的授权条款'],['https://resources.rework.com/tools/ai-tools/best-ai-music-generators-2026','v2 模型缩小人声差距的评价'],['https://www.mixmasterai.co/best-ai-music-generator-with-vocals','人声真实性的横向对比']] },
+
+{ n:'Splash Pro', dev:'Splash / Popgun Labs Pty Ltd（澳大利亚）', cat:'整曲生成', group:'song', score:7.9,
+  site:'https://www.splashmusic.com/', siteP:'https://pro.splashmusic.com/',
+  free:'有免费层：可无限生成 60 秒以内歌曲，含基础 AI 歌声 / 说唱与 Text-to-Vocals 体验；免费层时长短、能力受限，商用需付费层。',
+  price:'Free $0；Starter $10/月；Max $49/月（Gen-1 最长 180 秒 / Gen-2 60 秒，10 个 AI 歌手、3 个 AI 说唱、可下载分轨）；Enterprise 定制报价',
+  cny:'$10 ≈ ¥71.0；$49 ≈ ¥347.9',
+  basis:'Fritz.ai 专家评测 4.4/5（=8.8）；ToolPilot 编辑评分 4/5（=8.0）；Techjockey 用户评分 4.5/5。维度：音乐质量 7.6 / 人声质感 8.0 / 风格多样性 7.5 / 生成稳定性 8.0 / 时长上限 6.5。',
+  one:'面向短视频社交场景的文本转带唱歌曲生成器，说唱与人声 hooks 是招牌，免费层慷慨、商用授权清晰；局限是单次生成时长上限低（1–3 分钟），长曲与整体制作弱于 Suno / Udio，且官方公开定价页曾出现死链。',
+  status:'正常运营', st:'g',
+  src:[['https://www.splashmusic.com/','官方站点与公司背景（Popgun Labs）'],['https://pro.splashmusic.com/','官方产品页；需登录，公开定价页 /pricing 与 /pro/pricing 均返回死链'],['https://www.splashmusic.com/terms-of-use-app','Splash App 的 Free / Premium 分层与 Premium $14.99/月、$49.99/年'],['https://fritz.ai/best-ai-music-generators/','Starter $10、Max $49 与单曲时长限制、评分 4.4/5'],['https://thataicollection.com/application/splash/','Max $49 档的 Gen-1 180 秒 / Gen-2 60 秒与歌手数量'],['https://toolpilot.tools/best/ai-music-audio-tools','编辑评分 4/5 与优缺点'],['https://www.techjockey.com/category/music-generators','用户评分 4.5/5']] },
+
+{ n:'Google Flow Music', dev:'原 Riffusion → Producer.ai → 2026-02 被 Google 收购', cat:'整曲生成', group:'song', score:7.6,
+  site:'https://www.riffusion.com/pricing', siteP:'https://www.riffusion.com/pricing',
+  free:'有免费层：每日补充 credit、2 路并发生成、全部核心功能（含 Lyria 模型、Projects、mp3/wav/m4a 与分轨下载）。原 Riffusion 时期的「不限量免费」已不存在。',
+  price:'Free $0；Starter $6/月（3000 credits ≈ 600 首）；Plus $18/月（10000 ≈ 2000 首）；Member $48/月（30000 ≈ 6000 首）',
+  cny:'$6 ≈ ¥42.6；$18 ≈ ¥127.8；$48 ≈ ¥340.8',
+  basis:'Riffusion 时期长期占据「免费层最慷慨」的评价（Artifactr 称其为免费层之王，ToolChase 记录 4.2/5）；收购后更名 Google Flow Music、产品仍在重塑期，第三方评测样本少。维度：音乐质量 7.6 / 人声质感 7.2 / 风格多样性 7.5 / 生成稳定性 7.6 / 时长上限 7.5。',
+  one:'产品在一年内两次改名，2026-02 被 Google 收购后由 Lyria 3 驱动、并入 Gemini 生态；现状是归属稳定但产品重塑中，原有免费层与 Pro/Studio 套餐已作废，历史用户需重新评估。',
+  status:'已被收购并更名', st:'r',
+  src:[['https://www.riffusion.com/pricing','当前官方定价页，标题已为 Google Flow Music，含 Free/Starter/Plus/Member 四档'],['https://awesomeagents.ai/news/producerai-joins-google-labs/','2026-02-24 Google 收购 Producer.ai（原 Riffusion）并并入 Google Labs 与 DeepMind'],['https://toolchase.com/tool/riffusion/','Riffusion → Producer.ai → Google Flow Music 的完整改名链路与评分 4.2/5'],['https://opentools.ai/news/google-labs-unveils-producerai-transforming-music-creation-with-ai-magic','收购与产品定位的报道'],['https://unfinish.io/blog','收购细节与团队去向'],['https://artifactr.net/best-ai-music-generators/','Riffusion 时期免费层评价']] },
+
+{ n:'Boomy', dev:'Boomy Corporation（美国）', cat:'整曲生成', group:'song', score:6.8,
+  site:'https://boomy.com/', siteP:'https://boomy.com/pricing',
+  free:'有免费层：可创建与编辑歌曲、基础编辑工具、最多保存 25 首。',
+  price:'Free $0；Creator $9.99/月（原价 $14.99）；Pro $29.99/月（原价 $39.99，每月 250 次 WAV 下载、完整商用授权）；Dolby 母带加购 $9.99',
+  cny:'$9.99 ≈ ¥70.9；$14.99 ≈ ¥106.4；$29.99 ≈ ¥212.9；$39.99 ≈ ¥283.9',
+  basis:'面向零基础用户、主打「几秒钟做歌并直接发行到流媒体」，但第三方评测普遍指出音质与原创性一般、收益分成模式特殊。维度：音乐质量 6.6 / 人声质感 6.5 / 风格多样性 6.8 / 生成稳定性 7.2 / 时长上限 7.0。',
+  one:'让完全不懂乐理的人几秒钟生成一首歌并发行到 Spotify 等平台，还能参与播放收益分成；局限是音质与原创性口碑平淡、免费层功能受限，网页版与移动端还有两套互不一致的订阅价格。',
+  status:'正常运营', st:'g',
+  src:[['https://boomy.com/pricing','官方定价：Free / Creator $9.99（33% off $14.99）/ Pro $29.99（25% off $39.99）'],['https://apps.apple.com/ge/app/boomy-ai-music-generator/id6748743368','移动端内购价格（周 $6.99-7.99 / 月 $26.99-29.99 / 年 $99.99-119.99）'],['https://aitrendtool.com/tools/boomy','各档保存数与下载额度、Dolby Remastering $9.99'],['https://aitoolsatlas.ai/tools/boomy-ai/review','免费层 25 首保存上限与 Creator 功能'],['https://www.bestfor.ai/best-ai-tools-for-apple-music','各档功能差异的第二来源']] },
+
+{ n:'Stable Audio 3.0', dev:'Stability AI（英国伦敦）', cat:'器乐配乐', group:'inst', score:7.8,
+  site:'https://stableaudio.com/', siteP:'https://stableaudio.com/pricing',
+  free:'有免费入口：注册赠送 credit（第三方口径约 1,000 credits 或 24 credits，非商用，部分高滥用地区会被暂停），额度用尽即止、不按月刷新。',
+  price:'Solo $12/月（660 credits）；Session $30/月（1800）；Producer $90/月（6000）；Studio $199/月（14000）；API 26 credits = $0.26/次',
+  cny:'$12 ≈ ¥85.2；$30 ≈ ¥213.0；$90 ≈ ¥639.0；$199 ≈ ¥1412.9；$0.26 ≈ ¥1.85',
+  basis:'Fello AI 评价其「不是 Suno / Udio 那样的带唱整曲工具，器乐、音效与长结构作曲能力突出」；AIToolsPolice 指出训练数据完全授权是核心卖点。维度：音乐质量 8.2 / 人声质感不适用（无歌声生成）/ 风格多样性 7.5 / 生成稳定性 8.3 / 时长上限 9.0（最长 6 分 20 秒）。',
+  one:'以训练数据全部授权、输出可商用、可自托管为核心卖点的器乐与音效生成平台，单次可生成 6 分 20 秒的完整结构并提供 DAW 插件；局限是它不生成歌声，做不了带唱正片歌曲，免费额度为一次性而非按月刷新。',
+  status:'正常运营', st:'g',
+  src:[['https://stableaudio.com/pricing','官方定价：Solo $12 / Session $30 / Producer $90 / Studio $199 与各档 credits'],['https://stableaudio.com/','官方产品能力：最长 6 分钟、DAW 插件、分轨导出'],['https://kb.stability.ai/knowledge-base/stable-audio-subscription-plans-and-credit-system','各档月度 credit 分配（官方知识库）'],['https://platform.stability.ai/pricing','API 计价：Stable Audio 3.0 = 26 credits（1 credit = $0.01）'],['https://stability.ai/explainers/stable-audio-vs-competitors-licensing-export-rights-and-self-hosting-compared','无歌声生成、最长 6 分 20 秒、授权与自托管对比（官方）'],['https://aitoolspolice.com/reviews/stable-audio/','每月档位与单次生成 credit 成本、无年付选项'],['https://felloai.com/best-ai-music-generators/','器乐/音效定位与人声能力缺口的评价']] },
+
+{ n:'AIVA', dev:'AIVA Technologies（卢森堡 / 法国）', cat:'器乐配乐', group:'inst', score:7.5,
+  site:'https://www.aiva.ai/', siteP:'https://www.aiva.ai/',
+  free:'有永久免费层：每月 3 次下载、单曲最长 3 分钟、可下载 MP3 与 MIDI，但版权归 AIVA、不可商业化、必须署名 AIVA。',
+  price:'Free €0；Standard €11–15/月（口径不统一）；Pro €33–49/月（口径不统一，仅 Pro 获完整版权）',
+  cny:'€11 ≈ ¥78.1（按 €1≈¥7.1 粗算）；€15 ≈ ¥106.5；€33 ≈ ¥234.3；€49 ≈ ¥347.9',
+  basis:'Nesyona 评为「最佳管弦 / 影视配乐」；Awesome Agents 称其管弦作曲为同领域最强；但免费层与低档付费层的版权归属限制被 Veena 等评测点名。维度：音乐质量 8.0 / 人声质感不适用 / 风格多样性 7.0 / 生成稳定性 7.8 / 时长上限 6.5。',
+  one:'影视 / 游戏 / 广告配乐方向最成熟的 AI 作曲器，风格偏管弦与电影感；局限是不生成歌声、单曲时长上限短，免费层与低档层的版权仍归 AIVA（只有 Pro 拿到完整版权），且价格口径在不同信源间存在 €11 / €15 / €33 / €49 的分歧。',
+  status:'正常运营', st:'g',
+  src:[['https://www.aiva.ai/','官方定价页：Free, Forever 与 Billed monthly / yearly 切换'],['https://brainszone.ai/ai-catalog/aiva','Standard €11 / Pro €33 与各档授权范围'],['https://www.dealon.ai/ai-marketplace/aiva','免费层限制与 Pro 才获完整版权的说明'],['https://nesyona.com/articles/best-ai-music-generators','「最佳管弦 / 影视配乐」定位与 €15 / €49 价格口径'],['https://awesomeagents.ai/tools/best-ai-music-generators-2026/','管弦作曲为同领域最强、Pro €49/月'],['https://www.veena.studio/blog/best-free-ai-music-tools','免费层「版权归 AIVA」与下载次数限制的评价']] },
+
+{ n:'SOUNDRAW', dev:'SOUNDRAW Inc.（日本东京）', cat:'器乐配乐', group:'inst', score:7.5,
+  site:'https://soundraw.io/', siteP:'https://soundraw.io/',
+  free:'有免费试用（可注册试听与试做，正式下载需付费）；Grid 产品线另有独立免费层：每月 8 个下载额度、可存 3 个项目，iPhone/Mac 上仅预览。',
+  price:'Creator $19.99/月（年付 $16.99）；Artist Starter $29.99–39.99/月；Artist Pro $59.99/月；Artist Unlimited $99.99/月；Grid Pro $149.99',
+  cny:'$16.99 ≈ ¥120.6；$19.99 ≈ ¥141.9；$29.99 ≈ ¥212.9；$59.99 ≈ ¥425.9；$99.99 ≈ ¥709.9；$149.99 ≈ ¥1064.9',
+  basis:'Nesyona 评为「最佳免版税（版权安全）」；ToolixLab 认为其最契合内容创作者的背景音乐场景。维度：音乐质量 7.8 / 人声质感不适用 / 风格多样性 7.5 / 生成稳定性 8.0 / 时长上限 7.0。',
+  one:'为内容创作者设计的免版税背景音乐生成器，全部音轨自带商业许可、可分发到 Spotify / Apple Music，法律状态干净；局限是纯器乐、完全不支持人声，且官方不同入口给出的价格数字（$5.99 / $10.49 / $16.99 / $19.99 / $29.99 / $39.99）相互冲突。',
+  status:'正常运营', st:'g',
+  src:[['https://soundraw.io/','官方定价截面：Creator $5.99 / Artist Starter $10.49'],['https://soundraw.io/blog/lp/creator-plan','Creator $19.99 月付、$16.99 年付'],['https://soundraw.io/blog/post/best-royalty-free-music','Creator $19.99、Artist $39.99、Artist Pro $59.99、Artist Unlimited $99.99'],['https://soundraw.io/blog/post/best-ai-music-generators-free-and-paid-honestly-reviewed','官方自述：不支持人声、纯器乐、Creator 起 $16.99'],['https://soundraw.io/grid','Grid 产品线定价与免费层 8 credits/月'],['https://nesyona.com/articles/best-ai-music-generators','「最佳免版税」定位与 $16.99 / $50 口径']] },
+
+{ n:'Loudly（VEGA-2）', dev:'Loudly GmbH（德国柏林）', cat:'器乐配乐', group:'inst', score:7.4,
+  site:'https://www.loudly.com/', siteP:'https://www.loudly.com/',
+  free:'有免费层：有限生成次数、单曲仅 0.5 分钟预览、每天 1 次下载、非商用、基础 MP3 音质、共享生成队列、不提供分发。',
+  price:'Free $0；Personal $10/月（年付 $8/月，$96/年）；Pro $30/月（年付 $24/月）；API 订阅 1000 次/月 $125',
+  cny:'$8 ≈ ¥56.8；$10 ≈ ¥71.0；$24 ≈ ¥170.4；$30 ≈ ¥213.0；$125 ≈ ¥887.5',
+  basis:'Tooliverse 指出付费分层的真正分界线是授权范围而非额度；AI-Pedia 提醒其保留生成音轨版权。维度：音乐质量 7.5 / 人声质感 7.2 / 风格多样性 7.4 / 生成稳定性 7.6 / 时长上限 8.0（Pro 最长 30 分钟）。',
+  one:'德国团队的音乐生成加音乐 API 平台，2026 年 3 月上线 VEGA-2 模型（智能混音、自动母带、流派调优，面向全部订阅层免费升级）；局限是官方保留生成音轨版权，免费层只给 30 秒预览且有每日下载限制。',
+  status:'正常运营', st:'g',
+  src:[['https://www.loudly.com/blog/vega-2-is-live-loudly-launched-its-most-advanced-ai-music-generator','VEGA-2 模型上线时间与面向全部订阅层免费升级'],['https://www.loudly.com/faq','三条订阅线（Free / Personal / Pro）与各自额度'],['https://www.loudly.com/developers/pricing','API 定价：1000 次/月 $125，折 $0.125/次'],['https://aitoolscoop.com/tool/loudly','Personal $10/月（年付 $8）、900 VEGA + 100 MANTA、7 分钟上限'],['https://tooliverse.ai/tools/loudly','Personal / Pro 档位差异与年付 $24'],['https://aipedia.wiki/tools/loudly/','「Loudly 保留生成音轨版权」的授权提醒']] },
+
+{ n:'Beatoven.ai', dev:'Beatoven.ai（印度）', cat:'器乐配乐', group:'inst', score:7.2,
+  site:'https://www.beatoven.ai/', siteP:'https://www.beatoven.ai/pricing',
+  free:'有免费层：约 5 次免费生成、基础音轨编辑、每月 1 次音画匹配生成（第三方口径）。',
+  price:'Free $0；Creator Lite $3/月；Creator $10/月（第三方另有 $6 口径）；Visionary $20/月；加购时长 $3/分钟',
+  cny:'$3 ≈ ¥21.3；$6 ≈ ¥42.6；$10 ≈ ¥71.0；$20 ≈ ¥142.0',
+  basis:'Awesome Agents 将其列为「最佳预算选项」；Rework 评测称其「为画面节奏配乐专门设计，但按分钟计费惩罚高产用户、流派预设少于 Soundraw」。维度：音乐质量 7.3 / 人声质感不适用 / 风格多样性 6.8 / 生成稳定性 7.8 / 时长上限 7.0。',
+  one:'为视频 / 播客做情绪化配乐而生的生成器，可上传视频让 AI 按画面节奏生成，所有付费层提供永久免版税许可；局限是不支持人声、按月分钟数计费对高产用户不友好，官方价格在不同信源间有 $6 / $10 / $12 / $20 多个版本。',
+  status:'正常运营', st:'g',
+  src:[['https://www.beatoven.ai/pricing','官方定价页（未直接抓取）'],['https://reworkcontent.azurewebsites.net/tools/ai-tools/best-ai-tools-for-music-production-2026','Creator Lite $3、Creator $10（30 分钟）、Visionary $20（60 分钟）、加购 $3/分钟'],['https://insmelo.com/blog/best-ai-music-generator','Creator $10 / 年 $100、Visionary $20 / 年 $200、加购 $3/分钟'],['https://www.bestfor.ai/best-ai-tools-for-text-to-music','Creator $6/月、年付 $30、免费层 5 次生成'],['https://awesomeagents.ai/tools/best-ai-music-generators-2026/','「最佳预算选项」定位']] },
+
+{ n:'Mubert', dev:'Mubert Inc.（美国 / 塞浦路斯团队）', cat:'器乐配乐', group:'inst', score:7.0,
+  site:'https://mubert.com/', siteP:'https://mubert.com/render/pricing',
+  free:'有免费层：每月 25 首、时长受限、MP3 音质、每月 5 次下载，非商用。',
+  price:'Free $0；Creator $14/月（非商用）；Business $199/月（年付 $149.29）；API Build $49/月；API Startup+ $499/月',
+  cny:'$14 ≈ ¥99.4；$49 ≈ ¥347.9；$199 ≈ ¥1412.9；$149.29 ≈ ¥1059.9；$499 ≈ ¥3542.9',
+  basis:'第三方目录普遍将其定位为「持续生成 / 流媒体 BGM 引擎」而非整曲创作工具；Creati.ai 记录免费层为每月 24 credits（约 2 首）。维度：音乐质量 7.2 / 人声质感不适用 / 风格多样性 7.0 / 生成稳定性 7.5 / 时长上限 8.0（单轨可达 25 分钟）。',
+  one:'把 AI 音乐做成无限流媒体加 API 嵌入的引擎，单轨可长达 25 分钟，适合 App、门店与播客场景；局限是更接近情绪 BGM 生成而非歌曲创作，不生成人声，免费层不可商用且每月仅 5 次下载。',
+  status:'正常运营', st:'g',
+  src:[['https://mubert.com/render/pricing','官方定价：Business $199/月、年付 $149.29'],['https://mubert.com/render/cases/minimal-music-generator','官方档位明细：Free 25 首/月、Creator $14/月 500 首'],['https://mubert.com/api/use-cases/ai-royalty-free-music-generator','API 定价：Startup+ $499/月（30,000 次）'],['https://mubert.com/api/use-cases/ai-automations','API Build $49/月（100 次生成）'],['https://creati.ai/ai-tools/mubert-ai/','免费层 credit 口径与付费起点 $9.98']] },
+
+{ n:'Lalals', dev:'Lalals（与 LALAL.AI 同一团队体系）', cat:'音色转换', group:'conv', score:7.8,
+  site:'https://lalals.com/', siteP:'https://lalals.com/pricing',
+  free:'有免费层：500 credits/月、可访问 10 个音色、可分 2 轨、可制作完整歌曲。',
+  price:'Free $0；Plus $11.99/月（年付 $9.99/月，5000 credits、200 音色）；Pro $20.99/月（年付 $17.99/月，25000 credits、全部 3000+ 音色）',
+  cny:'$9.99 ≈ ¥70.9；$11.99 ≈ ¥85.1；$17.99 ≈ ¥127.7；$20.99 ≈ ¥149.0',
+  basis:'官方披露 3,000+ 音色，工具链覆盖 Voice Conversion、Stems、TTS、Mastering、Sound FX；第三方横评常将其列为「整链路最全」。维度：人声质感 7.9 / 演唱表现力 7.6 / 原创生成能力 6.8。',
+  one:'把音色转换、翻唱、分轨、TTS、母带打包成一条链路的创作平台，免费层就能跑通完整流程；局限是核心仍是换声而非原创歌曲生成，海量名人音色带来版权与合规风险，官方定价页与文档页还有 $11.99 / $12.97 两套口径。',
+  status:'正常运营', st:'g',
+  src:[['https://lalals.com/pricing','官方定价页：Plus $9.99（年付）/$12.97、Pro $16.99（年付）'],['https://lalals.com/docs/plans-and-credits','官方文档：FREE 500 credits/10 音色、PLUS $11.99/$9.99、PRO $20.99/$17.99、3,000+ 音色'],['https://lalals.com/produce','官方创作页档位：Free 500 credits、Plus 5,000 credits / 200 音色'],['https://lalals.com/blog/best-ai-cover-song-generator','官方自述工具链与 Plus $6.99、Pro $14.99、Studio $24.99 的第三套口径']] },
+
+{ n:'Kits AI', dev:'Kits.AI（美国）', cat:'音色转换', group:'conv', score:7.5,
+  site:'https://www.kits.ai/', siteP:'https://www.kits.ai/pricing',
+  free:'有免费层：可体验完整音色工作流（转换额度未公开披露，官方称付费才解锁完整能力）。',
+  price:'Free $0；Starter $10/月；Producer $30/月（年付 $16/月）；Professional $60/月（年付 $40/月）',
+  cny:'$10 ≈ ¥71.0；$16 ≈ ¥113.6；$30 ≈ ¥213.0；$40 ≈ ¥284.0；$60 ≈ ¥426.0',
+  basis:'官方定位为面向音乐人的专业级人声工具（Instant Cloning、Professional Voice Cloning、Choir Tool、Voice Synth、Text to Speech），第三方横评常与 Murf、Uberduck 并列比较。维度：人声质感 7.8 / 演唱表现力 7.4 / 原创生成能力 6.5。',
+  one:'面向音乐人的专业音色模型库与人声转换工具，可做即时克隆、专业克隆、和声生成与 TTS，音色质量口碑较好；局限是它做的是人声转换与音色而非从零生成一首歌，不算文生音乐工具，且免费层额度未公开透明。',
+  status:'正常运营', st:'g',
+  src:[['https://www.kits.ai/pricing','官方定价：Starter $10、Producer $30、Professional $60'],['https://app.kits.ai/subscriptions','年付口径：Producer $16/月、Professional $40/月'],['https://help.kits.ai/hc/en-us/articles/25450515542291-Which-plans-do-you-offer','官方帮助中心：各档音色位与下载分钟数'],['https://www.kits.ai/','官方首页：免费开始、付费起点 $10/月'],['https://www.kits.ai/hi/blog/uberduck','官方自述最低付费档 $9.99 与功能构成']] },
+
+{ n:'Musicfy', dev:'Musicfy AI（美国）', cat:'音色转换', group:'conv', score:7.4,
+  site:'https://musicfy.lol/', siteP:'https://musicfy.lol/pricing',
+  free:'有免费层：每天 3 次生成、可建 1 个自定义音色模型（部分第三方口径记为无免费层）。',
+  price:'Free $0；Starter $9/月；Pro $24.99/月；Studio（Lock Studio）$56/月年付（$671.99/年），第三方口径为 $69.99/月',
+  cny:'$9 ≈ ¥63.9；$24.99 ≈ ¥177.4；$56 ≈ ¥397.6；$69.99 ≈ ¥497.0',
+  basis:'BestForAI 收录（302K/月访问）、Creati.ai 收录；以音色克隆与免版税人声库为核心卖点，但原创整曲能力弱。维度：人声质感 7.6 / 演唱表现力 7.2 / 原创生成能力 6.8。',
+  one:'以音色克隆、免版税人声库与伴奏生成为主，适合做翻唱和 demo 人声；局限是原创整曲生成能力薄弱，且定价层级口径混乱（$8–$56/月区间内多个官方与第三方数字并存），App Store 内购与网页订阅并行。',
+  status:'正常运营', st:'g',
+  src:[['https://musicfy.lol/pricing','官方定价页：$56/月（年付 $671.99/年）、1,000 首/月'],['https://create.musicfy.lol/','官方创作端：Starter 2 个自定义模型 / Professional 6 个'],['https://lalals.com/blog/best-ai-cover-song-generator','第三方口径：Starter $9.99、Pro $24.99、Studio $69.99，免费 3 次/天'],['https://www.bestfor.ai/best-ai-cover-generator-ai-tools','「无免费层、付费起点 $9/月」的冲突口径'],['https://apps.apple.com/ma/app/musicfy-ai-music-song-maker/id6755963473','移动端内购价格（周 $9.99 / 月 $14.99 / 年 $29.99）']] },
+
+{ n:'Covers AI', dev:'Covers AI（美国）', cat:'音色转换', group:'conv', score:7.4,
+  site:'https://www.covers.ai/', siteP:'https://www.covers.ai/',
+  free:'无免费计划（Creati.ai 记录 Has free plan = No），仅付费试用。',
+  price:'Starter $8/月；Creator $24/月；Pro $39/月（第三方另有「起步 $3/月」的口径）',
+  cny:'$8 ≈ ¥56.8；$24 ≈ ¥170.4；$39 ≈ ¥276.9',
+  basis:'BestForAI 收录（117K/月访问）、Creati.ai 收录；社区对其「换歌手」效果评价较好，但不具备从零创作整曲的能力。维度：人声质感 7.8 / 演唱表现力 7.5 / 原创生成能力 6.5。',
+  one:'把任意歌曲换歌手的 AI 翻唱与自定义音色训练工具，效果直观、上手快；局限是它做的是音色替换而非音乐生成，训练与使用名人音色存在明确版权与伦理风险，官方站点无法直接抓取导致定价需二次核实。',
+  status:'正常运营（定价待确认）', st:'r',
+  src:[['https://www.covers.ai/','官方域名核验（站点抓取被拒，定价未能从官方页面确认）'],['https://creati.ai/ai-tools/covers-ai/','Starter $8 / Creator $24 / Pro $39 与「无免费计划」'],['https://www.bestfor.ai/best-ai-cover-generator-ai-tools','冲突口径：「起步 $3/月」，流量 117K/月'],['https://www.bestfor.ai/best-ai-tools-for-ai-song-covers','按档位的 credits 与训练额度描述']] },
+
+{ n:'Treblo（原 Sonauto）', dev:'Treblo（美国，Y Combinator 背景）', cat:'整曲生成', group:'song', score:7.5,
+  site:'https://treblo.com/', siteP:'https://treblo.com/',
+  free:'免费层极慷慨：无限生成、无每日上限、无水印，可用最新 Melodia v3 模型，支持延长、分轨分离与 remix（第三方口径；官方页面未能抓取）。',
+  price:'Free $0；Pro 档存在（提速与提升导出保真度），官方定价页返回死链，价格待确认',
+  cny:'免费层 0；Pro 待确认',
+  basis:'ReviewNexa 30 天实测称其为「2026 年最好的免费 AI 音乐生成器」但明确「尚不能替代付费工具做商业级工作」；AI-Pedias 编辑评分 3.8/5（=7.6）；Artifactr 将其列为免费新秀。维度：音乐质量 7.4 / 人声质感 7.0 / 风格多样性 7.6 / 生成稳定性 7.5 / 时长上限 8.0（单曲约 4.5 分钟）。',
+  one:'2026 年 6 月由 Sonauto 更名为 Treblo，媒体多次点名为最慷慨的免费整曲生成器，v3 模型单曲可达约 4.5 分钟且无积分体系；局限是人声打磨度弱于 Suno / Udio、编辑控制少、商业授权条款表述不清。',
+  status:'正常运营（已更名）', st:'r',
+  src:[['https://treblo.com/blog/sonauto-is-now-treblo','官方更名公告：2026-06-03 Sonauto → Treblo，账号与歌曲库迁移'],['https://treblo.com/','官方首页：Melodia v3 模型、免费层描述、Musically 定价对比表'],['https://sonauto.ai/developers/docs','官方 API 文档：v3 处于 beta（v3-preview），参数行为可能变动'],['https://reviewnexa.com/sonauto-ai-pricing/','「100% 免费无限生成」口径与商业权利不清的提醒'],['https://reviewnexa.com/sonauto-review/','30 天实测结论：不适用于专业商用'],['https://es.ai-pedias.com/category/ai-audio','编辑评分 3.8/5']] },
+
+{ n:'Amper Music', dev:'原 Amper Music（美国纽约）→ 2020 年被 Shutterstock 收购', cat:'已停服', group:'dead', score:null,
+  site:'https://www.shutterstock.com/', siteP:null,
+  free:'不适用（服务已停），原免费试用随之终止。',
+  price:'不适用（Discontinued）。公开信息中不再存在独立订阅或按次购买入口。',
+  cny:'不适用',
+  basis:'不适用——独立产品已关停，不存在当前可用版本。旧评汇总（sunodownload.io 等）给出约 4.2/5，但信源时效性不足，不作为当前评分使用。',
+  one:'AI 作曲赛道的早期玩家，按 mood / genre / 时长参数生成免版税配乐；2020 年被 Shutterstock 收购后独立平台关停，技术并入 Shutterstock Music 与 Shutterstock AI 生成体系，现无独立入口。',
+  status:'已停止独立服务', st:'stop',
+  src:[['https://ampermusic.ai/','「2020 年底被 Shutterstock 收购并随后关停」的现状说明'],['https://artificial-intelligence-wiki.com/generative-ai/ai-music-generation/amper-music-guide/','收购后独立平台停止运营、用户被迁移至 Shutterstock'],['https://futuramo.com/blog/how-ai-is-transforming-creative-work/','「已被 Shutterstock 吸收，不再作为独立产品运营」'],['https://aitoolfinder.org/tools/amper-music/','2020 年收购后关停、技术并入 Shutterstock Music'],['https://pointofai.com/compare/altered-studio-vs-amper-music','定价状态直接标注为 Discontinued']] },
+
+{ n:'Output（Co-Producer / Output One）', dev:'Output Inc.（美国）', cat:'不适用', group:'na', score:null,
+  site:'https://output.com/', siteP:'https://output.com/products/output-one',
+  free:'无免费层，仅 7 天免费试用。',
+  price:'Output Co-Producer $9.99/月；Output One $14.99/月（含 Co-Producer + Arcade + Portal + Thermal + Movement）',
+  cny:'$9.99 ≈ ¥70.9；$14.99 ≈ ¥106.4',
+  basis:'不适用——核验结论：Output 没有面向消费者的文生音乐或歌声合成产品。其 AI 能力仅体现在 Co-Producer（AI 样本与音色检索推荐），输出物是样本建议而非歌曲或人声，因此不计入音乐生成清单。',
+  one:'以 Arcade / Portal / Exhale 等插件闻名的音乐制作软件公司，AI 能力仅用于 Co-Producer 的样本智能检索；按「AI 音乐生成相关产品」的口径判定为不存在。',
+  status:'正常运营（但非生成式音乐产品）', st:'na',
+  src:[['https://output.com/blog/ai-music-tools-help-not-replace','官方自述：Co-Producer 的训练数据与定位（样本检索，非生成）'],['https://output.com/company','官方公司介绍：业务为创作插件与乐器，未提生成式音乐'],['https://output.com/get/co-producer-with-shonci','Co-Producer $9.99/月、Output One $14.99/月'],['https://output.com/products/output-one','Output One 订阅内容与 7 天试用']] }
+];
+
+/* ===== 排除项与待确认项 ===== */
+var EXCLUDED = [{
+  n:'Klangio（klang.io）', dev:'Klangio GmbH（德国）',
+  reason:'经核验不具备音乐生成或歌声合成能力，按任务给定的纳入标准排除。其全部产品线（Piano2Notes、Guitar2Tabs、Sing2Notes、Violin2Notes、Wind2Notes、Drum2Notes、Transcription Studio）都是「音频 → 乐谱 / MIDI」的 AI 转谱工具，输出物是谱面与 MIDI，不产出音乐或人声。',
+  src:[['https://klang.io/','官方站点：产品定位为 AI 音乐转谱 App'],['https://klang.io/help/difference-demo-full/','官方说明 Demo（免费）与 Full（付费）转谱的区别'],['https://klang.io/api/','API 定价：Basic $0 / 50 次、Startup $99/月、Business $499/月'],['https://klang.io/halloween-sale/','Universe 年度订阅首年 $59.99，覆盖全部转谱 App']]
+}];
+
+var UNVERIFIED = [
+ { p:'Splash Pro', f:'官方定价页', d:'pro.splashmusic.com 为官方产品页但需登录，公开可访问的 /pro/pricing 与 /pricing 均返回死链；Starter $10 / Max $49 来自 Fritz.ai、thataicollection 等第三方，未能在官方页面二次确认。' },
+ { p:'Covers AI', f:'官方定价与免费额度', d:'covers.ai 站点抓取被拒；Starter $8 / Creator $24 / Pro $39 来自 Creati.ai，而 BestForAI 记为「起步 $3/月」，两者冲突。' },
+ { p:'Treblo（原 Sonauto）', f:'官方定价页与商业授权条款', d:'treblo.com/pricing 返回死链；「完全免费无限生成 + 含商业权利」来自第三方，官方站点与 API 文档未直接确认商业权利范围。' },
+ { p:'AIVA', f:'Standard / Pro 价格', d:'不同信源给出 €11/€33 与 €15/€49 两套数字，官方定价页抓取内容中未出现完整付费档位。' },
+ { p:'SOUNDRAW', f:'各档价格', d:'官方不同页面同时出现 $5.99、$10.49、$16.99、$19.99、$29.99、$39.99、$59.99、$99.99、$149.99，无法判断哪些是年付折算、哪些是旧版残留。' },
+ { p:'Beatoven.ai', f:'Creator 档价格', d:'第三方分别记为 $6/月、$10/月、$12/月，官方 pricing 页未能抓取。' },
+ { p:'Musicfy', f:'免费层与 Studio 档价格', d:'官方 pricing 页显示 $56/月（年付 $671.99/年），第三方记为 $69.99/月；免费层存在「每天 3 次生成」与「无免费层」两种口径。' },
+ { p:'Lalals', f:'Plus / Pro 价格', d:'官方文档页为 $11.99 / $20.99（月付），官方 pricing 页出现 $12.97 与 $16.99，同一站点内口径不一。' },
+ { p:'Boomy', f:'移动端与网页版订阅价格', d:'App Store 内购（周 $6.99 / 月 $26.99 / 年 $99.99）与官网（$9.99 / $29.99）并存且差异明显；另有第三方记为 $2.99 / $9.99，疑为旧版数据。' },
+ { p:'ElevenLabs Music', f:'Scale 档价格', d:'官方英文与葡文定价页分别记为 $330 与 $299。' },
+ { p:'Suno / Udio', f:'官方定价页逐字比对', d:'suno.com/pricing 与 udio.com/pricing 未能直接抓取；$10/$30 来自多家一致口径的第三方，可信度较高但未与官方页面逐字核对。' },
+ { p:'Synthesizer V', f:'声库统一价目', d:'$79–99.99 取自官方商店具体商品页，官方未公布统一价目表；不同声库与渠道（含 NI 渠道 $225 套装）价格不一。' },
+ { p:'VOCALOID 6', f:'是否存在免费版', d:'官方商品列表与产品页未给出免费版说明；第三方提到的 Lite Editor 未找到官方对应页面。' },
+ { p:'Suno', f:'免费层每日额度', d:'多数信源为 50 credits/天（约 10 首），个别记为 50 credits 总量或 7 次试下载上限，官方 pricing 页未抓取到。' }
+];
+
+/* ===== 渲染 ===== */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function list(arr){ return '<ul>' + arr.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul>'; }
+
+/* 总览表 */
+var mb = document.getElementById('matrixBody');
+mb.innerHTML = PRODUCTS.map(function(p){
+  var badge = p.st==='stop' ? '<span class="mark void">已停服</span>' : (p.st==='na' ? '<span class="mark void">不适用</span>' : p.status);
+  var sc = (p.score===null) ? '<span class="score na">不适用</span>' : '<span class="score">'+p.score.toFixed(1)+'</span>';
+  return '<tr><td data-label="产品"><b>'+esc(p.n)+'</b><br><span style="color:#8A9390;font-size:12px">'+esc(p.cat)+'</span></td>'
+    + '<td data-label="开发方">'+esc(p.dev)+'</td>'
+    + '<td class="num" data-label="评分">'+sc+'</td>'
+    + '<td data-label="免费额度">'+esc(p.free.split('：')[0])+'</td>'
+    + '<td class="num" data-label="最低付费档">'+esc(p.price.replace(/^Free \$0；/, '').split('；')[0])+'</td>'
+    + '<td data-label="现状">'+badge+'</td></tr>';
+}).join('');
+
+/* 产品记录 */
+document.getElementById('recs').innerHTML = PRODUCTS.map(function(p){
+  var cls = p.st==='stop' ? ' stop' : (p.st==='na' ? ' na' : '');
+  var bcls = p.st==='g' ? 'badge g' : (p.st==='stop'||p.st==='na' ? 'badge' : 'badge r');
+  var scoreTxt = (p.score===null) ? '不适用' : p.score.toFixed(1) + ' / 10';
+  var priceHtml = esc(p.price) + '<br><span style="color:#8A9390">人民币估算：' + esc(p.cny) + '</span>';
+  return '<article class="rec'+cls+'">'
+    + '<header><div><h3>'+esc(p.n)+'</h3><p class="dev">'+esc(p.dev)+' · '+esc(p.cat)+'</p></div><span class="'+bcls+'">'+esc(p.status)+'</span></header>'
+    + '<div class="basis"><b style="font-weight:500">评分：'+scoreTxt+'</b>（主观共识评分）<br>'+esc(p.basis)+'</div>'
+    + '<dl class="fields">'
+    + '<div class="f"><dt>官方网址</dt><dd><a href="'+p.site+'">'+esc(p.site)+'</a>'+(p.siteP ? '　|　定价页：<a href="'+p.siteP+'">'+esc(p.siteP)+'</a>' : '')+'</dd></div>'
+    + '<div class="f"><dt>免费额度</dt><dd>'+esc(p.free)+'</dd></div>'
+    + '<div class="f"><dt>价格 / 套餐</dt><dd>'+priceHtml+'</dd></div>'
+    + '<div class="f"><dt>特点与局限</dt><dd>'+esc(p.one)+'</dd></div>'
+    + '</dl>'
+    + '<div class="src"><div class="st">信源 URL（标注该 URL 支撑的字段）</div><ol>'
+    + p.src.map(function(s){ return '<li><a href="'+s[0]+'">'+esc(s[0])+'</a> — <b>'+esc(s[1])+'</b></li>'; }).join('')
+    + '</ol></div></article>';
+}).join('');
+
+/* 排除项 */
+document.getElementById('excludedBox').innerHTML = EXCLUDED.map(function(x){
+  return '<div class="panel"><h3>'+esc(x.n)+'</h3><p style="color:#5C6663;font-size:13px;margin-bottom:8px">'+esc(x.dev)+'</p><p>'+esc(x.reason)+'</p>'
+    + '<div class="ref"><b style="font-weight:500">核验信源：</b><br>' + x.src.map(function(s){ return '<a href="'+s[0]+'">'+esc(s[0])+'</a> — '+esc(s[1]); }).join('<br>') + '</div></div>';
+}).join('');
+
+/* 待确认项 */
+document.getElementById('unverifiedBox').innerHTML = '<div class="tablewrap tw-cards"><table class="cards">'
+  + '<colgroup><col style="width:18%"><col style="width:20%"><col style="width:62%"></colgroup>'
+  + '<thead><tr><th>产品</th><th>待确认字段</th><th>具体说明</th></tr></thead><tbody>'
+  + UNVERIFIED.map(function(u){ return '<tr><td data-label="产品"><b>'+esc(u.p)+'</b></td><td data-label="字段">'+esc(u.f)+'</td><td data-label="说明">'+esc(u.d)+'</td></tr>'; }).join('')
+  + '</tbody></table></div>';
+/* ===== 图表 ===== */
+var charts = [];
+function mk(id, opt){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var c = echarts.init(el, null, { renderer: 'canvas' });
+  c.setOption(opt);
+  charts.push(c);
+}
+window.addEventListener('resize', function(){ charts.forEach(function(c){ c.resize(); }); });
+
+/* --- 以下为图表绘制，等待 ECharts 就绪后执行；库加载失败时页面保留可读文字 --- */
+function bootCharts(){
+if (!window.echarts) { return false; }
+var GROUP_META = {
+  vocal:{ label:'歌声合成 / 虚拟歌手', color:PAL.main },
+  song:{  label:'整曲生成（含人声）', color:PAL.mainL },
+  inst:{  label:'器乐 / 配乐生成',    color:PAL.accent },
+  conv:{  label:'音色转换 / 翻唱',    color:PAL.accentL }
+};
+var SHORT = {
+  'Synthesizer V Studio 2 Pro':'Synthesizer V Studio 2 Pro',
+  'ACE Studio（Artist / Artist Pro）':'ACE Studio',
+  'VOCALOID 6':'VOCALOID 6',
+  'Suno':'Suno','Udio':'Udio','ElevenLabs Music':'ElevenLabs Music','Splash Pro':'Splash Pro',
+  'Google Flow Music':'Google Flow Music','Boomy':'Boomy','Treblo（原 Sonauto）':'Treblo（原 Sonauto）',
+  'Stable Audio 3.0':'Stable Audio 3.0','AIVA':'AIVA','SOUNDRAW':'SOUNDRAW','Loudly（VEGA-2）':'Loudly',
+  'Beatoven.ai':'Beatoven.ai','Mubert':'Mubert','Lalals':'Lalals','Kits AI':'Kits AI',
+  'Musicfy':'Musicfy','Covers AI':'Covers AI'
+};
+
+/* --- 图 1：评分排序 --- */
+var scored = PRODUCTS.filter(function(p){ return p.score !== null; });
+var order = ['vocal','song','inst','conv'];
+var cats = [], vals = [];
+order.forEach(function(g){
+  scored.filter(function(p){ return p.group === g; })
+        .sort(function(a,b){ return b.score - a.score; })
+        .forEach(function(p){ cats.push(SHORT[p.n] || p.n); vals.push(p.score); });
+});
+var seriesScore = order.map(function(g){
+  return {
+    name: GROUP_META[g].label, type: 'bar', stack: 'sc', barMaxWidth: 15,
+    itemStyle: { color: GROUP_META[g].color, borderRadius: [0,2,2,0] },
+    label: { show: true, position: 'right', fontSize: 11, color: '#5C6663', formatter: '{c}' },
+    data: cats.map(function(c, i){
+      var p = scored.filter(function(x){ return (SHORT[x.n]||x.n) === c; })[0];
+      return (p && p.group === g) ? p.score : null;
+    })
+  };
+});
+mk('c-score', {
+  tooltip: { trigger:'axis', axisPointer:{ type:'shadow' },
+    formatter: function(ps){
+      var i = ps[0].dataIndex, s = 0;
+      ps.forEach(function(x){ if(x.value !== null && x.value !== undefined) s = x.value; });
+      return cats[i] + '\n主观共识评分：' + s + ' / 10';
+    } },
+  legend: { top: 4, left: 0, itemWidth: 12, itemHeight: 12, itemGap: 16,
+    textStyle: { fontSize: 11.5, color: '#5C6663' } },
+  grid: { left: 4, right: 44, top: 54, bottom: 4, containLabel: true },
+  xAxis: { type:'value', max: 10, min: 0,
+    axisLabel: { fontSize: 11, color: '#8A9390' },
+    splitLine: { lineStyle: { color: '#EDF0EE' } },
+    axisLine: { show: false }, axisTick: { show: false } },
+  yAxis: { type:'category', inverse: true, data: cats,
+    axisLabel: { fontSize: 11.5, color: '#16191B' },
+    axisLine: { lineStyle: { color: '#DBE0DC' } }, axisTick: { show: false } },
+  series: seriesScore
+});
+
+/* --- 图 2：付费档位区间 --- */
+var RANGE = [
+  { n:'Beatoven.ai', min:3, max:20 },
+  { n:'Google Flow Music', min:6, max:48 },
+  { n:'ElevenLabs Music', min:6, max:299 },
+  { n:'Covers AI', min:8, max:39 },
+  { n:'Musicfy', min:9, max:69.99 },
+  { n:'Boomy', min:9.99, max:29.99 },
+  { n:'Suno', min:10, max:30 },
+  { n:'Udio', min:10, max:30 },
+  { n:'Loudly', min:10, max:30 },
+  { n:'Kits AI', min:10, max:60 },
+  { n:'Splash Pro', min:10, max:49 },
+  { n:'Lalals', min:11.99, max:20.99 },
+  { n:'Stable Audio 3.0', min:12, max:199 },
+  { n:'Mubert', min:14, max:199 },
+  { n:'SOUNDRAW', min:19.99, max:99.99 },
+  { n:'ACE Studio', min:20.73, max:27.5 }
+];
+var rNames = RANGE.map(function(r){ return r.n; });
+mk('c-price', {
+  tooltip: { trigger:'axis', axisPointer:{ type:'shadow' },
+    formatter: function(ps){
+      var i = ps[0].dataIndex, r = RANGE[i];
+      return r.n + '\n最低付费档 $' + r.min + ' / 月\n最高档 $' + r.max + ' / 月\n≈ ¥' + (r.min*7.1).toFixed(1) + ' – ¥' + (r.max*7.1).toFixed(1);
+    } },
+  legend: { top: 4, left: 0, itemWidth: 12, itemHeight: 12,
+    data: ['付费档位区间（月付 USD）'], textStyle: { fontSize: 11.5, color: '#5C6663' } },
+  grid: { left: 4, right: 56, top: 50, bottom: 4, containLabel: true },
+  xAxis: { type:'value', axisLabel: { fontSize: 11, color:'#8A9390', formatter: '${value}' },
+    splitLine: { lineStyle: { color:'#EDF0EE' } }, axisLine:{ show:false }, axisTick:{ show:false } },
+  yAxis: { type:'category', inverse: true, data: rNames,
+    axisLabel: { fontSize: 11.5, color:'#16191B' },
+    axisLine: { lineStyle: { color:'#DBE0DC' } }, axisTick:{ show:false } },
+  series: [
+    { name:'base', type:'bar', stack:'r', silent:true, barMaxWidth:13,
+      itemStyle: { color:'rgba(0,0,0,0)' }, emphasis:{ itemStyle:{ color:'rgba(0,0,0,0)' } },
+      data: RANGE.map(function(r){ return r.min; }) },
+    { name:'付费档位区间（月付 USD）', type:'bar', stack:'r', barMaxWidth:13,
+      itemStyle: { color: PAL.main, borderRadius: 3 },
+      label: { show:true, position:'right', fontSize:11, color:'#5C6663',
+        formatter: function(p){ return '$' + RANGE[p.dataIndex].max; } },
+      data: RANGE.map(function(r){ return +(r.max - r.min).toFixed(2); }) }
+  ]
+});
+
+/* --- 图 3：能力结构 --- */
+var catOrder = [
+  { k:'song', name:'整曲生成（含人声）' },
+  { k:'inst', name:'器乐 / 配乐生成' },
+  { k:'conv', name:'音色转换 / 翻唱' },
+  { k:'vocal', name:'歌声合成 / 虚拟歌手' }
+];
+var catCounts = catOrder.map(function(c){
+  return PRODUCTS.filter(function(p){ return p.group === c.k; }).length;
+});
+mk('c-cat', {
+  tooltip: { trigger:'item',
+    formatter: function(p){ return p.name + '\n' + p.value + ' 个产品（占 ' + p.percent + '%）'; } },
+  grid: { left: 4, right: 60, top: 12, bottom: 4, containLabel: true },
+  xAxis: { type:'value', max: 8, axisLabel:{ fontSize:11, color:'#8A9390' },
+    splitLine:{ lineStyle:{ color:'#EDF0EE' } }, axisLine:{ show:false }, axisTick:{ show:false } },
+  yAxis: { type:'category', inverse: true, data: catOrder.map(function(c){ return c.name; }),
+    axisLabel:{ fontSize:12, color:'#16191B' }, axisLine:{ lineStyle:{ color:'#DBE0DC' } }, axisTick:{ show:false } },
+  series: [{
+    type:'bar', barMaxWidth: 20,
+    itemStyle: { color: PAL.main, borderRadius: 3 },
+    label: { show:true, position:'right', fontSize:12, color:'#5C6663',
+      formatter: function(p){ return p.value + ' 个'; } },
+    data: catCounts
+  }]
+});
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(function(){ charts.forEach(function(c){ c.resize(); }); });
+}
+return true;
+}
+
+var bootTries = 0;
+(function boot(){
+  if (bootCharts()) { return; }
+  bootTries++;
+  if (bootTries > 48) {
+    ['c-score','c-price','c-cat'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) { return; }
+      el.style.height = 'auto';
+      el.innerHTML = '<p style="font-size:13px;color:#8C9491;padding:24px 0;margin:0">图表库未能加载，本节图表不可用；对应数值请见第 03 节「总览表」与第 04 节「产品记录」。</p>';
+    });
+    return;
+  }
+  setTimeout(boot, 250);
+})();
+</script>
+</body>
+</html>

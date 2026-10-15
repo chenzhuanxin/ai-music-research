@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.png" width="120" alt="ai-music-research"></p>
+
 # 国内外 AI 音乐生成模型调研（2026-10）
 
 覆盖 **中国大陆 19 项 + 海外 24 项** AI 音乐生成产品/模型（歌曲、纯音乐、歌声合成），整理为对比清单，包含：
